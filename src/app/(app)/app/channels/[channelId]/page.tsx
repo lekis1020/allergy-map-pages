@@ -85,8 +85,7 @@ export default function ChannelPage() {
     if (!newContent.trim() || !membership || !user) return;
     setLoading(true);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase.from("posts") as any).insert({
+    const { error } = await supabase.from("posts").insert({
       channel_id: channelId,
       community_id: membership.community_id,
       author_id: user.id,
@@ -95,7 +94,10 @@ export default function ChannelPage() {
       content_type: "text",
     });
 
-    if (!error) {
+    if (error) {
+      console.error("Post creation error:", error);
+      alert(`게시글 작성 실패: ${error.message}`);
+    } else {
       setNewTitle("");
       setNewContent("");
       setDialogOpen(false);

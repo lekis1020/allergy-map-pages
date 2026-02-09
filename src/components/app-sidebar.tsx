@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useCommunity } from "@/hooks/use-community";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -70,10 +71,11 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
     return (
       <div className="flex h-full flex-col">
         {/* Community Header */}
-        <div className="flex h-14 items-center border-b px-4">
+        <div className="flex h-14 items-center justify-between border-b px-4">
           <h2 className="text-lg font-semibold truncate">
             {community?.name || "커뮤니티"}
           </h2>
+          <ThemeToggle />
         </div>
 
         <ScrollArea className="flex-1 px-3 py-4">
@@ -117,11 +119,14 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
           <div className="space-y-1">
             {channels.map((channel) => {
               const Icon = channelTypeIcons[channel.type] || Hash;
-              const isActive = pathname === `/app/channels/${channel.id}`;
+              const channelHref = channel.type === "chat"
+                ? `/app/channels/${channel.id}/chat`
+                : `/app/channels/${channel.id}`;
+              const isActive = pathname.startsWith(`/app/channels/${channel.id}`);
               return (
                 <Link
                   key={channel.id}
-                  href={`/app/channels/${channel.id}`}
+                  href={channelHref}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
@@ -132,6 +137,11 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="truncate">{channel.name}</span>
+                  {channel.type === "chat" && (
+                    <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-auto">
+                      실시간
+                    </Badge>
+                  )}
                 </Link>
               );
             })}

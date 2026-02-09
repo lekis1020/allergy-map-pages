@@ -4,17 +4,13 @@ const CACHE_NAME = "community-v1";
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        "/",
-        "/login",
-        "/app",
-      ]);
+      return cache.addAll(["/", "/login", "/app"]);
     })
   );
   self.skipWaiting();
 });
 
-// Activate event
+// Activate event - clean old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -30,17 +26,22 @@ self.addEventListener("activate", (event) => {
 
 // Fetch event - Network first, fallback to cache
 self.addEventListener("fetch", (event) => {
-  // Skip non-GET requests
   if (event.request.method !== "GET") return;
 
-  // Skip API and auth requests
   const url = new URL(event.request.url);
-  if (url.pathname.startsWith("/api") || url.pathname.startsWith("/auth")) return;
+
+  // Skip API, auth, and Supabase requests
+  if (
+    url.pathname.startsWith("/api") ||
+    url.pathname.startsWith("/auth") ||
+    url.hostname.includes("supabase")
+  ) {
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone the response and cache it
         if (response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -50,29 +51,57 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => {
-        // Fallback to cache
-        return caches.match(event.request);
+        return caches.match(event.request).then((cached) => {
+          return cached || caches.match("/");
+        });
       })
   );
 });
 
 // Push notification event
 self.addEventListener("push", (event) => {
-  const data = event.data?.json() || {};
-  const title = data.title || "새 알림";
+  let data = { title: "새 알림", body: "", url: "/app/notifications" };
+
+  try {
+    if (event.data) {
+      data = { ...data, ...event.data.json() };
+    }
+  } catch (e) {
+    if (event.data) {
+      data.body = event.data.text();
+    }
+  }
+
   const options = {
-    body: data.body || "",
+    body: data.body,
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
+    vibrate: [100, 50, 100],
     data: { url: data.url || "/app/notifications" },
+    actions: [
+      { action: "open", title: "열기" },
+      { action: "close", title: "닫기" },
+    ],
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
 // Notification click event
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+
+  if (event.action === "close") return;
+
   const url = event.notification.data?.url || "/app";
-  event.waitUntil(clients.openWindow(url));
+  event.waitUntil(
+    clients.matchAll({ type: "window" }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(url) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      return clients.openWindow(url);
+    })
+  );
 });

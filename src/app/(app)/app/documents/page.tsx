@@ -51,8 +51,8 @@ export default function DocumentsPage() {
     if (!newTitle.trim() || !user || !membership) return;
     setLoading(true);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from("documents") as any)
+    const { data, error } = await supabase
+      .from("documents")
       .insert({
         community_id: membership.community_id,
         title: newTitle,
@@ -63,10 +63,16 @@ export default function DocumentsPage() {
       .select()
       .single();
 
-    if (!error && data) {
+    if (error) {
+      console.error("Document creation error:", error);
+      alert(`문서 생성 실패: ${error.message}`);
+      setLoading(false);
+      return;
+    }
+
+    if (data) {
       setNewTitle("");
       setDialogOpen(false);
-      // Navigate to the new document
       window.location.href = `/app/documents/${data.id}`;
     }
     setLoading(false);

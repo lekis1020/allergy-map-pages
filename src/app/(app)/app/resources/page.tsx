@@ -76,54 +76,93 @@ export default function ResourcesPage() {
     if (!files || !user || !membership) return;
     setUploading(true);
 
-    const attachments: Array<{ url: string; filename: string; size: number; type: string }> = [];
+    try {
+      const attachments: Array<{ url: string; filename: string; size: number; type: string }> = [];
 
-    for (const file of Array.from(files)) {
-      if (file.size > 50 * 1024 * 1024) {
-        alert(`${file.name}의 크기가 50MB를 초과합니다.`);
-        continue;
-      }
+      for (const file of Array.from(files)) {
+        if (file.size > 50 * 1024 * 1024) {
+          alert(`${file.name}의 크기가 50MB를 초과합니다.`);
+          continue;
+        }
 
-      const path = `${membership.community_id}/${user.id}/${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from("attachments")
-        .upload(path, file);
-
-      if (!error && data) {
-        const { data: urlData } = supabase.storage
+        const safeName = file.name.replace(/[^a-zA-Z0-9가-힣._-]/g, "_");
+        const path = `${membership.community_id}/${user.id}/${Date.now()}-${safeName}`;
+        const { data, error } = await supabase.storage
           .from("attachments")
-          .getPublicUrl(data.path);
+          .upload(path, file);
 
-        attachments.push({
-          url: urlData.publicUrl,
-          filename: file.name,
-          size: file.size,
-          type: file.type,
-        });
+        if (error) {
+          console.error("Storage upload error:", error);
+          alert(`파일 업로드 실패: ${file.name}\n${error.message}`);
+          continue;
+        }
+
+        if (data) {
+          const { data: urlData } = supabase.storage
+            .from("attachments")
+            .getPublicUrl(data.path);
+
+          attachments.push({
+            url: urlData.publicUrl,
+            filename: file.name,
+            size: file.size,
+            type: file.type,
+          });
+        }
       }
-    }
 
-    if (attachments.length > 0) {
-      // Find or use first resource channel
-      const { data: channels } = await supabase
-        .from("channels")
-        .select("id")
-        .eq("community_id", membership.community_id)
-        .eq("type", "resource")
-        .limit(1);
+      if (attachments.length > 0) {
+        // Find or use first resource channel
+        const { data: channels } = await supabase
+          .from("channels")
+          .select("id")
+          .eq("community_id", membership.community_id)
+          .eq("type", "resource")
+          .limit(1);
 
-      const channelId = channels?.[0]?.id;
-      if (channelId) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from("posts") as any).insert({
+        const channelId = channels?.[0]?.id;
+        if (!channelId) {
+          alert("자료 공유 채널이 없습니다. 관리자에게 문의하세요.");
+          setUploading(false);
+          return;
+        }
+
+        const { error: postError } = await supabase.from("posts").insert({
           channel_id: channelId,
           community_id: membership.community_id,
           author_id: user.id,
           content: `파일 공유: ${attachments.map((a) => a.filename).join(", ")}`,
           content_type: "text",
-          attachments,
+          attachments: attachments as unknown as undefined,
         });
+
+        if (postError) {
+          console.error("Post creation error:", postError);
+          alert(`게시글 생성 실패: ${postError.message}`);
+        } else {
+          // Reload resources
+          const { data: resourceChannels } = await supabase
+            .from("channels")
+            .select("id")
+            .eq("community_id", membership.community_id)
+            .eq("type", "resource");
+
+          if (resourceChannels?.length) {
+            const channelIds = resourceChannels.map((c) => c.id);
+            const { data: newPosts } = await supabase
+              .from("posts")
+              .select("*, profiles(*)")
+              .in("channel_id", channelIds)
+              .order("created_at", { ascending: false })
+              .limit(50);
+
+            if (newPosts) setPosts(newPosts as unknown as PostWithAuthor[]);
+          }
+        }
       }
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("파일 업로드 중 오류가 발생했습니다.");
     }
 
     setUploading(false);

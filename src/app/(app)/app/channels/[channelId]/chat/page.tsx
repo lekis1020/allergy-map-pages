@@ -92,14 +92,16 @@ export default function ChatPage() {
     if (!newMessage.trim() || !user || sending) return;
     setSending(true);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase.from("messages") as any).insert({
+    const { error } = await supabase.from("messages").insert({
       channel_id: channelId,
       sender_id: user.id,
       content: newMessage,
     });
 
-    if (!error) {
+    if (error) {
+      console.error("Message send error:", error);
+      alert(`메시지 전송 실패: ${error.message}`);
+    } else {
       setNewMessage("");
     }
     setSending(false);
