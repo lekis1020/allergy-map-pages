@@ -11,7 +11,7 @@
 -- ▼▼▼ 여기에 본인 UUID를 넣으세요 ▼▼▼
 DO $$
 DECLARE
-  v_user_id UUID := 'YOUR_USER_ID';  -- ← 실제 UUID로 교체!
+  v_user_id UUID := 'd6a4d2fb-5914-43a2-b384-479e0c7c3f73';  -- 실제 UUID 적용 완료
   v_community_id UUID;
 BEGIN
 
