@@ -33,6 +33,7 @@ import {
   Menu,
   X,
   MapPin,
+  Newspaper,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -60,6 +61,7 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
     { href: "/app/members", label: "멤버", icon: Users },
     { href: "/app/resources", label: "자료실", icon: FolderOpen },
     { href: "/app/documents", label: "문서", icon: FileText },
+    { href: "/app/today-papers", label: "오늘의 논문", icon: Newspaper },
     { href: "/app/allergy-map", label: "알레르기지도", icon: MapPin },
     {
       href: "/app/notifications",
