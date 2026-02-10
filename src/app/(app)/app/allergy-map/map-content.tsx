@@ -220,6 +220,7 @@ export default function AllergyMapContent() {
         .leaflet-container { font-family: system-ui, sans-serif; font-size: 13px; }
         .custom-marker { background: transparent !important; border: none !important; }
         .leaflet-popup-content-wrapper { border-radius: 10px; }
+        .allergy-map-scroll { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
       `}</style>
 
       <div className="fixed inset-0 md:left-64 z-10 flex flex-col md:flex-row bg-background">
@@ -235,7 +236,7 @@ export default function AllergyMapContent() {
         <div
           className={`${
             panelOpen ? "flex" : "hidden md:flex"
-          } flex-col w-full md:w-[400px] shrink-0 border-r border-border bg-card overflow-hidden`}
+          } flex-col w-full h-full md:w-[400px] md:shrink-0 border-r border-border bg-card overflow-hidden`}
         >
           {/* Header */}
           <div className="bg-gradient-to-br from-blue-900 to-blue-600 text-white px-5 py-4">
@@ -359,7 +360,7 @@ export default function AllergyMapContent() {
           </div>
 
           {/* Hospital List */}
-          <div ref={listRef} className="flex-1 overflow-y-auto">
+          <div ref={listRef} className="allergy-map-scroll flex-1 min-h-0 overflow-y-auto">
             {filtered.length === 0 && (
               <div className="px-4 py-8 text-center text-sm text-muted-foreground">
                 검색 결과가 없습니다.
