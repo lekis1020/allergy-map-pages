@@ -39,7 +39,7 @@ export async function GET(request: Request) {
         if (inviteCode) {
           // Try RPC function first
           const { data: rpcResult, error: rpcError } = await supabase
-            .rpc("use_invite_code", { invite_code: inviteCode.toUpperCase(), for_user_id: user.id });
+            .rpc("use_invite_code", { p_invite_code: inviteCode.toUpperCase(), p_for_user_id: user.id });
 
           if (rpcError || !rpcResult) {
             // Fallback: direct table query

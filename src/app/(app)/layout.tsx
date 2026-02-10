@@ -34,7 +34,7 @@ function JoinCommunityForm() {
 
       // Strategy 1: use_invite_code RPC (handles everything atomically)
       const { data: rpcResult, error: rpcError } = await supabase
-        .rpc("use_invite_code", { invite_code: code, for_user_id: user.id });
+        .rpc("use_invite_code", { p_invite_code: code, p_for_user_id: user.id });
 
       if (!rpcError && rpcResult === true) {
         window.location.reload();
@@ -50,7 +50,7 @@ function JoinCommunityForm() {
 
       // Strategy 2: validate_invite_code RPC + direct membership insert
       const { data: validateResult, error: validateError } = await supabase
-        .rpc("validate_invite_code", { invite_code: code });
+        .rpc("validate_invite_code", { p_invite_code: code });
 
       if (!validateError && validateResult && validateResult.length > 0) {
         if (!validateResult[0].is_valid) {

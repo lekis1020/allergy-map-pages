@@ -38,7 +38,7 @@ function SignupForm() {
   async function validateInviteCode(code: string): Promise<{ valid: boolean; communityId?: string }> {
     // Try RPC function first (available after security patch)
     const { data: rpcData, error: rpcError } = await supabase
-      .rpc("validate_invite_code", { invite_code: code.toUpperCase() });
+      .rpc("validate_invite_code", { p_invite_code: code.toUpperCase() });
 
     if (!rpcError && rpcData && rpcData.length > 0) {
       if (!rpcData[0].is_valid) return { valid: false };
