@@ -103,7 +103,7 @@ export default function PostDetailPage() {
   }, {} as Record<string, CommentWithAuthor[]>);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-hidden">
       <Link
         href={`/app/channels/${channelId}`}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

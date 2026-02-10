@@ -52,7 +52,7 @@ export default function MemberProfilePage() {
   if (!profile) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-hidden">
       <Link
         href="/app/members"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

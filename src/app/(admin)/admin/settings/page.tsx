@@ -43,9 +43,9 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin" className="text-muted-foreground hover:text-foreground">
+    <div className="space-y-4 sm:space-y-6 overflow-hidden">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <Link href="/admin" className="text-muted-foreground hover:text-foreground shrink-0">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <h1 className="text-xl font-bold flex items-center gap-2 sm:text-2xl">

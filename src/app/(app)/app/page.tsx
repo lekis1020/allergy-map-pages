@@ -73,55 +73,55 @@ export default function DashboardPage() {
   }, [membership, supabase, channels.length]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-hidden">
       {/* Welcome */}
       <div>
-        <h1 className="text-xl font-bold sm:text-2xl">
+        <h1 className="text-lg font-bold sm:text-2xl truncate">
           안녕하세요, {user?.display_name}님
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground sm:text-base">
           {community?.name || "커뮤니티"}에 오신 것을 환영합니다
         </p>
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="rounded-full bg-primary/10 p-2">
-              <Users className="h-5 w-5 text-primary" />
+          <CardContent className="flex flex-col items-center p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+            <div className="rounded-full bg-primary/10 p-1.5 sm:p-2 mb-1 sm:mb-0">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.members}</p>
-              <p className="text-xs text-muted-foreground">멤버</p>
+            <div className="text-center sm:text-left">
+              <p className="text-xl font-bold sm:text-2xl">{stats.members}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">멤버</p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="rounded-full bg-primary/10 p-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
+          <CardContent className="flex flex-col items-center p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+            <div className="rounded-full bg-primary/10 p-1.5 sm:p-2 mb-1 sm:mb-0">
+              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.posts}</p>
-              <p className="text-xs text-muted-foreground">게시글</p>
+            <div className="text-center sm:text-left">
+              <p className="text-xl font-bold sm:text-2xl">{stats.posts}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">게시글</p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="rounded-full bg-primary/10 p-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
+          <CardContent className="flex flex-col items-center p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+            <div className="rounded-full bg-primary/10 p-1.5 sm:p-2 mb-1 sm:mb-0">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.channels}</p>
-              <p className="text-xs text-muted-foreground">채널</p>
+            <div className="text-center sm:text-left">
+              <p className="text-xl font-bold sm:text-2xl">{stats.channels}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">채널</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Recent Posts */}
         <Card>
           <CardHeader>
@@ -138,11 +138,11 @@ export default function DashboardPage() {
                 <Link
                   key={post.id}
                   href={`/app/channels/${post.channel_id}/post/${post.id}`}
-                  className="flex items-start gap-3 rounded-md p-2 transition-colors hover:bg-accent"
+                  className="flex items-start gap-2 sm:gap-3 rounded-md p-2 transition-colors hover:bg-accent"
                 >
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
                     <AvatarImage src={post.profiles.avatar_url || undefined} />
-                    <AvatarFallback>
+                    <AvatarFallback className="text-xs">
                       {post.profiles.display_name?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
@@ -150,7 +150,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-medium truncate">
                       {post.title || post.content.slice(0, 50)}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate">
                       {post.profiles.display_name} · {formatRelativeTime(post.created_at)}
                     </p>
                   </div>
@@ -176,22 +176,22 @@ export default function DashboardPage() {
                 <Link
                   key={member.user_id}
                   href={`/app/members/${member.user_id}`}
-                  className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-accent"
+                  className="flex items-center gap-2 sm:gap-3 rounded-md p-2 transition-colors hover:bg-accent"
                 >
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
                     <AvatarImage src={member.profiles.avatar_url || undefined} />
-                    <AvatarFallback>
+                    <AvatarFallback className="text-xs">
                       {member.profiles.display_name?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{member.profiles.display_name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium truncate">{member.profiles.display_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       {member.profiles.company}
                       {member.profiles.role_title && ` · ${member.profiles.role_title}`}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">
                     {member.role === "owner" ? "운영자" : member.role === "admin" ? "부운영자" : "멤버"}
                   </Badge>
                 </Link>

@@ -123,14 +123,10 @@ html, body {
   overscroll-behavior: none;
 }
 
-/* Mobile touch-friendly */
+/* Mobile touch-friendly - prevent iOS zoom on input focus */
 @media (max-width: 768px) {
-  button, a, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
   input, textarea, select {
-    font-size: 16px !important; /* Prevent iOS zoom on focus */
+    font-size: 16px !important;
   }
 }
 

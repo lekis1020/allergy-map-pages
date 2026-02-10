@@ -135,7 +135,7 @@ export default function ChannelPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -204,10 +204,10 @@ export default function ChannelPage() {
             >
               <Card className="transition-colors hover:bg-accent/50 cursor-pointer">
                 <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-10 w-10">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <Avatar className="h-8 w-8 shrink-0 sm:h-10 sm:w-10">
                       <AvatarImage src={post.profiles.avatar_url || undefined} />
-                      <AvatarFallback>
+                      <AvatarFallback className="text-xs sm:text-sm">
                         {post.profiles.display_name?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>

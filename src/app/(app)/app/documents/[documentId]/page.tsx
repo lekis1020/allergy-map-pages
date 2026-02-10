@@ -78,7 +78,7 @@ export default function DocumentEditorPage() {
   }, [title, content, doc, saveDocument]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-hidden">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/app/documents"

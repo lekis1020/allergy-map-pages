@@ -92,9 +92,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-bold flex items-center gap-2 sm:text-2xl">
-        <Settings className="h-5 w-5 sm:h-6 sm:w-6" />
+    <div className="space-y-4 sm:space-y-6 overflow-hidden">
+      <h1 className="text-lg font-bold flex items-center gap-2 sm:text-2xl">
+        <Settings className="h-5 w-5 shrink-0 sm:h-6 sm:w-6" />
         설정
       </h1>
 
