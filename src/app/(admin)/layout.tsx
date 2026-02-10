@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { AppSidebar } from "@/components/app-sidebar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { isLoading } = useAuth();
+  const { isLoading, membership } = useAuth();
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -15,6 +17,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </div>
     );
+  }
+
+  // Block non-admin users
+  if (membership && membership.role !== "owner" && membership.role !== "admin") {
+    router.replace("/app");
+    return null;
   }
 
   return (

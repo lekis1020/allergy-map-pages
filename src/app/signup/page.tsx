@@ -37,17 +37,12 @@ function SignupForm() {
 
   async function validateInviteCode(code: string): Promise<{ valid: boolean; communityId?: string }> {
     const { data, error } = await supabase
-      .from("invitations")
-      .select("*")
-      .eq("code", code.toUpperCase())
-      .single();
+      .rpc("validate_invite_code", { invite_code: code.toUpperCase() });
 
-    if (error || !data) return { valid: false };
+    if (error || !data || data.length === 0) return { valid: false };
+    if (!data[0].is_valid) return { valid: false };
 
-    if (data.expires_at && new Date(data.expires_at) < new Date()) return { valid: false };
-    if (data.used_count >= data.max_uses) return { valid: false };
-
-    return { valid: true, communityId: data.community_id };
+    return { valid: true, communityId: data[0].community_id };
   }
 
   async function handleEmailSignup(e: React.FormEvent) {
