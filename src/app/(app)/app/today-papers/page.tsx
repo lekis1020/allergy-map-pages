@@ -11,6 +11,7 @@ import {
   ChevronUp,
   Search,
   X,
+  Sparkles,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,65 +42,39 @@ interface AbstractSection {
 // ── Category definitions ──────────────────────────────────────────
 const CATEGORIES = [
   {
-    id: "asthma-rhinitis",
+    id: "Asthma and rhinitis",
     label: "Asthma and rhinitis",
-    terms: [
-      "asthma",
-      "allergic rhinitis",
-      "rhinitis",
-      "rhinosinusitis",
-      "bronchial hyperresponsiveness",
-      "wheezing",
-    ],
     color:
       "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
     activeColor: "bg-blue-600 text-white border-blue-600",
   },
   {
-    id: "urticaria-ad",
+    id: "Urticaria and atopic dermatitis",
     label: "Urticaria and atopic dermatitis",
-    terms: [
-      "urticaria",
-      "atopic dermatitis",
-      "eczema",
-      "angioedema",
-      "dermatitis",
-      "pruritus",
-    ],
     color:
       "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800",
     activeColor: "bg-purple-600 text-white border-purple-600",
   },
   {
-    id: "drug-allergy",
+    id: "Drug allergy",
     label: "Drug allergy",
-    terms: [
-      "drug allergy",
-      "drug hypersensitivity",
-      "anaphylaxis",
-      "food allergy",
-      "drug reaction",
-      "adverse drug",
-    ],
     color:
       "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800",
     activeColor: "bg-orange-600 text-white border-orange-600",
   },
   {
-    id: "eosinophilic-immunologic",
+    id: "Eosinophilic and immunologic disorders",
     label: "Eosinophilic and immunologic disorders",
-    terms: [
-      "eosinophilic",
-      "immunotherapy",
-      "immunoglobulin",
-      "immunologic",
-      "immunological",
-      "ige",
-      "mast cell",
-    ],
     color:
       "bg-green-100 text-green-800 border-green-300 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
     activeColor: "bg-green-600 text-white border-green-600",
+  },
+  {
+    id: "Others",
+    label: "Others",
+    color:
+      "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800/40 dark:text-gray-300 dark:border-gray-600",
+    activeColor: "bg-gray-600 text-white border-gray-600",
   },
 ] as const;
 
@@ -120,7 +95,7 @@ const SEARCH_TERMS = [
 
 const BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
 
-// ── IMRAD label normalisation ─────────────────────────────────────
+// ── IMRAD label normalisation (for PubMed structured abstracts) ───
 const IMRAD_LABELS: Record<string, string> = {
   BACKGROUND: "Background",
   INTRODUCTION: "Background",
@@ -169,143 +144,6 @@ const SECTION_COLORS: Record<string, string> = {
   Abstract: "text-foreground",
 };
 
-// ── Heuristic sentence classifier (for unstructured abstracts) ────
-function classifySentence(sentence: string): string | null {
-  const s = sentence.toLowerCase();
-
-  if (
-    /\b(in conclusion|conclud|in summary|our (findings|results|study) suggest|these (findings|results|data) suggest|taken together|overall|implication)/i.test(
-      s,
-    )
-  )
-    return "Conclusion";
-
-  if (
-    /\b(we found|results? show|demonstrated|p\s*[<>=]\s*0|confidence interval|odds ratio|hazard ratio|\bsignificantly\b|prevalence was|incidence|were (higher|lower|greater|similar)|compared (to|with)|statistic)/i.test(
-      s,
-    )
-  )
-    return "Results";
-
-  if (
-    /\b(method|we (conducted|performed|analyzed|examined|evaluated|recruited|enrolled|included|assessed|investigated|measured|used a)|retrospective|prospective|cross.?sectional|cohort|randomized|double.?blind|placebo|sample size|participants? were|subjects? were|questionnaire|survey|database|inclusion criteria)/i.test(
-      s,
-    )
-  )
-    return "Methods";
-
-  if (
-    /\b(little is known|remains unclear|not (fully |well )?understood|limited (data|evidence|studies)|previous (studies|research)|growing (concern|evidence)|increasing|burden of|is (a |an )?(common|major|important)|however|although|to date|currently|the (aim|purpose|objective) of)/i.test(
-      s,
-    )
-  )
-    return "Background";
-
-  return null;
-}
-
-/** Try to split text that has embedded labels like "BACKGROUND: ..." */
-function splitByEmbeddedLabels(text: string): AbstractSection[] | null {
-  const labelPattern =
-    /(?:^|\n)\s*(BACKGROUND|INTRODUCTION|OBJECTIVE|OBJECTIVES|PURPOSE|AIM|METHODS|METHOD|RESULTS|FINDINGS|CONCLUSIONS?|DISCUSSION|SUMMARY)\s*:\s*/gi;
-  const matches = [...text.matchAll(labelPattern)];
-  if (matches.length < 2) return null;
-
-  const sections: AbstractSection[] = [];
-  for (let i = 0; i < matches.length; i++) {
-    const rawLabel = matches[i][1].toUpperCase();
-    const label = IMRAD_LABELS[rawLabel] || rawLabel;
-    const start = matches[i].index! + matches[i][0].length;
-    const end = i + 1 < matches.length ? matches[i + 1].index! : text.length;
-    const sectionText = text.slice(start, end).trim();
-    if (sectionText) sections.push({ label, text: sectionText });
-  }
-
-  // Include text before the first label if any
-  if (matches[0].index! > 0) {
-    const pre = text.slice(0, matches[0].index!).trim();
-    if (pre) sections.unshift({ label: "Background", text: pre });
-  }
-
-  return sections.length >= 2 ? sections : null;
-}
-
-/** Use keyword heuristics to infer IMRAD sections */
-function parseUnstructuredAbstract(text: string): AbstractSection[] {
-  // 1) Try embedded labels first
-  const embedded = splitByEmbeddedLabels(text);
-  if (embedded) return embedded;
-
-  // 2) Split into sentences
-  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-  if (sentences.length <= 2) {
-    return [{ label: "Abstract", text: text.trim() }];
-  }
-
-  // 3) Classify each sentence
-  const classified = sentences.map((s) => ({
-    text: s.trim(),
-    label: classifySentence(s),
-  }));
-
-  const classifiedCount = classified.filter((c) => c.label !== null).length;
-
-  // If less than 25% classified, fall back to positional split
-  if (classifiedCount / classified.length < 0.25) {
-    const total = sentences.length;
-    const bgEnd = Math.max(1, Math.ceil(total * 0.25));
-    const methodEnd = Math.max(bgEnd + 1, Math.ceil(total * 0.5));
-    const resultEnd = Math.max(methodEnd + 1, Math.ceil(total * 0.75));
-    const sections: AbstractSection[] = [
-      { label: "Background", text: sentences.slice(0, bgEnd).join(" ").trim() },
-      { label: "Methods", text: sentences.slice(bgEnd, methodEnd).join(" ").trim() },
-      { label: "Results", text: sentences.slice(methodEnd, resultEnd).join(" ").trim() },
-      { label: "Conclusion", text: sentences.slice(resultEnd).join(" ").trim() },
-    ];
-    return sections.filter((s) => s.text.length > 0);
-  }
-
-  // 4) Group consecutive sentences with same label
-  const sections: AbstractSection[] = [];
-  let currentLabel = classified[0].label || "Background";
-  let currentTexts: string[] = [classified[0].text];
-
-  for (let i = 1; i < classified.length; i++) {
-    const label = classified[i].label || currentLabel;
-    if (label !== currentLabel) {
-      sections.push({ label: currentLabel, text: currentTexts.join(" ").trim() });
-      currentLabel = label;
-      currentTexts = [classified[i].text];
-    } else {
-      currentTexts.push(classified[i].text);
-    }
-  }
-  sections.push({ label: currentLabel, text: currentTexts.join(" ").trim() });
-
-  return sections;
-}
-
-// ── Category matching ─────────────────────────────────────────────
-function getArticleCategories(article: PubMedArticle): string[] {
-  const titleLower = article.title.toLowerCase();
-  const categories: string[] = [];
-
-  for (const cat of CATEGORIES) {
-    if (cat.terms.some((term) => titleLower.includes(term.toLowerCase()))) {
-      categories.push(cat.id);
-    }
-  }
-
-  // General allergy / immunology catch-all
-  if (categories.length === 0) {
-    if (/\b(allerg|immun|hypersensitiv|ige)\b/i.test(titleLower)) {
-      categories.push("eosinophilic-immunologic");
-    }
-  }
-
-  return categories;
-}
-
 function formatDate(dateStr: string) {
   if (!dateStr) return "";
   return dateStr;
@@ -322,11 +160,51 @@ export default function TodayPapersPage() {
   const [abstracts, setAbstracts] = useState<Record<string, AbstractSection[]>>(
     {},
   );
+  const [abstractLoading, setAbstractLoading] = useState<Set<string>>(
+    new Set(),
+  );
   const [searchFilter, setSearchFilter] = useState("");
   const [activeCategories, setActiveCategories] = useState<Set<string>>(
     new Set(),
   );
   const [totalCount, setTotalCount] = useState(0);
+
+  // LLM-powered category map: uid → category names
+  const [categoryMap, setCategoryMap] = useState<Record<string, string[]>>({});
+  const [categorizingStatus, setCategorizingStatus] = useState<
+    "idle" | "loading" | "done" | "error"
+  >("idle");
+
+  // ── Categorise articles via Gemini ──────────────────────────────
+  const categorizeArticles = useCallback(
+    async (articleList: PubMedArticle[]) => {
+      if (articleList.length === 0) return;
+      setCategorizingStatus("loading");
+
+      try {
+        const res = await fetch("/api/categorize-articles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            articles: articleList.map((a) => ({
+              uid: a.uid,
+              title: a.title,
+            })),
+          }),
+        });
+
+        if (!res.ok) throw new Error("categorize failed");
+
+        const data = await res.json();
+        setCategoryMap(data.categoryMap || {});
+        setCategorizingStatus("done");
+      } catch (err) {
+        console.error("Categorization error:", err);
+        setCategorizingStatus("error");
+      }
+    },
+    [],
+  );
 
   // ── Fetch articles (today only) ─────────────────────────────────
   const fetchArticles = useCallback(async () => {
@@ -365,6 +243,9 @@ export default function TodayPapersPage() {
         .filter(Boolean);
 
       setArticles(articleList);
+
+      // Trigger LLM categorisation
+      categorizeArticles(articleList);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다",
@@ -372,17 +253,20 @@ export default function TodayPapersPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [categorizeArticles]);
 
   useEffect(() => {
     fetchArticles();
   }, [fetchArticles]);
 
-  // ── Fetch & parse abstract (structured → IMRAD) ────────────────
+  // ── Fetch & parse abstract ─────────────────────────────────────
   const fetchAbstract = async (pmid: string) => {
     if (abstracts[pmid]) return;
 
+    setAbstractLoading((prev) => new Set(prev).add(pmid));
+
     try {
+      // 1) Fetch PubMed XML
       const url = `${BASE_URL}/efetch.fcgi?db=pubmed&id=${pmid}&retmode=xml`;
       const res = await fetch(url);
       const text = await res.text();
@@ -402,7 +286,7 @@ export default function TodayPapersPage() {
       const firstLabel = abstractTexts[0].getAttribute("Label");
 
       if (firstLabel && abstractTexts.length > 1) {
-        // ── Structured abstract (PubMed provides labels) ──
+        // ── Already structured by PubMed — use directly (no LLM cost) ──
         const sections: AbstractSection[] = [];
         abstractTexts.forEach((el) => {
           const rawLabel = el.getAttribute("Label") || "";
@@ -418,19 +302,48 @@ export default function TodayPapersPage() {
         });
         setAbstracts((prev) => ({ ...prev, [pmid]: sections }));
       } else {
-        // ── Unstructured abstract → infer IMRAD sections ──
+        // ── Unstructured → call Gemini Flash for IMRAD parsing ──
         const fullText = Array.from(abstractTexts)
           .map((el) => el.textContent || "")
           .join(" ")
           .trim();
-        const sections = parseUnstructuredAbstract(fullText);
-        setAbstracts((prev) => ({ ...prev, [pmid]: sections }));
+
+        try {
+          const llmRes = await fetch("/api/parse-abstract", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ abstract: fullText }),
+          });
+
+          if (llmRes.ok) {
+            const llmData = await llmRes.json();
+            const sections: AbstractSection[] = llmData.sections;
+            if (Array.isArray(sections) && sections.length > 0) {
+              setAbstracts((prev) => ({ ...prev, [pmid]: sections }));
+              return;
+            }
+          }
+        } catch {
+          // Fallback below
+        }
+
+        // Fallback: show as single block
+        setAbstracts((prev) => ({
+          ...prev,
+          [pmid]: [{ label: "Abstract", text: fullText }],
+        }));
       }
     } catch {
       setAbstracts((prev) => ({
         ...prev,
         [pmid]: [{ label: "", text: "초록을 불러오는데 실패했습니다." }],
       }));
+    } finally {
+      setAbstractLoading((prev) => {
+        const next = new Set(prev);
+        next.delete(pmid);
+        return next;
+      });
     }
   };
 
@@ -459,6 +372,11 @@ export default function TodayPapersPage() {
     });
   };
 
+  // ── Get categories for an article ───────────────────────────────
+  const getArticleCategories = (article: PubMedArticle): string[] => {
+    return categoryMap[article.uid] || [];
+  };
+
   // ── Filtering (text + category) ─────────────────────────────────
   const filteredArticles = articles.filter((a) => {
     if (searchFilter) {
@@ -474,6 +392,7 @@ export default function TodayPapersPage() {
 
     if (activeCategories.size > 0) {
       const articleCats = getArticleCategories(a);
+      if (articleCats.length === 0) return false; // not categorised yet
       if (!articleCats.some((c) => activeCategories.has(c))) return false;
     }
 
@@ -532,26 +451,43 @@ export default function TodayPapersPage() {
         ))}
       </div>
 
-      {/* ── Category filter tags ──────────────────────────────────── */}
+      {/* ── Category filter tags (LLM-powered) ────────────────────── */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted-foreground shrink-0">
+        <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
+          <Sparkles className="h-3 w-3" />
           분야 필터:
         </span>
         {CATEGORIES.map((cat) => {
           const isActive = activeCategories.has(cat.id);
+          const count =
+            categorizingStatus === "done"
+              ? articles.filter((a) =>
+                  (categoryMap[a.uid] || []).includes(cat.id),
+                ).length
+              : null;
           return (
             <button
               key={cat.id}
               onClick={() => toggleCategory(cat.id)}
+              disabled={categorizingStatus === "loading"}
               className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                 isActive ? cat.activeColor : cat.color
-              }`}
+              } ${categorizingStatus === "loading" ? "opacity-60" : ""}`}
             >
               {cat.label}
+              {count !== null && (
+                <span className="ml-1.5 opacity-70">({count})</span>
+              )}
               {isActive && <X className="h-3 w-3 ml-1.5 -mr-0.5" />}
             </button>
           );
         })}
+        {categorizingStatus === "loading" && (
+          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <RefreshCw className="h-3 w-3 animate-spin" />
+            AI 분류 중...
+          </span>
+        )}
         {activeCategories.size > 0 && (
           <button
             onClick={() => setActiveCategories(new Set())}
@@ -611,6 +547,7 @@ export default function TodayPapersPage() {
         !error &&
         filteredArticles.map((article) => {
           const isExpanded = expandedIds.has(article.uid);
+          const isAbstractLoading = abstractLoading.has(article.uid);
           const authorList =
             article.authors?.map((a) => a.name).join(", ") ||
             "저자 정보 없음";
@@ -746,6 +683,13 @@ export default function TodayPapersPage() {
                             </p>
                           </div>
                         ))}
+                      </div>
+                    ) : isAbstractLoading ? (
+                      <div className="flex items-center gap-2 py-3">
+                        <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                        <span className="text-xs text-muted-foreground">
+                          AI가 초록을 구조화하는 중...
+                        </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 py-2">
