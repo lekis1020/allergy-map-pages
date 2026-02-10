@@ -32,7 +32,7 @@ function JoinCommunityForm() {
 
       const code = inviteCode.trim().toUpperCase();
 
-      // Try RPC function first (if security patch was applied)
+      // Strategy 1: use_invite_code RPC (handles everything atomically)
       const { data: rpcResult, error: rpcError } = await supabase
         .rpc("use_invite_code", { invite_code: code, for_user_id: user.id });
 
@@ -41,7 +41,44 @@ function JoinCommunityForm() {
         return;
       }
 
-      // Fallback: direct table query (if RPC doesn't exist yet)
+      // If use_invite_code returned false (code invalid/expired), show error
+      if (!rpcError && rpcResult === false) {
+        setError("유효하지 않은 초대 코드입니다. 코드를 다시 확인해 주세요.");
+        setLoading(false);
+        return;
+      }
+
+      // Strategy 2: validate_invite_code RPC + direct membership insert
+      const { data: validateResult, error: validateError } = await supabase
+        .rpc("validate_invite_code", { invite_code: code });
+
+      if (!validateError && validateResult && validateResult.length > 0) {
+        if (!validateResult[0].is_valid) {
+          setError("초대 코드가 만료되었거나 사용 횟수를 초과했습니다.");
+          setLoading(false);
+          return;
+        }
+
+        const { error: memberError } = await supabase
+          .from("community_members")
+          .upsert({
+            community_id: validateResult[0].community_id,
+            user_id: user.id,
+            role: "member",
+            status: "active",
+          });
+
+        if (memberError) {
+          setError("커뮤니티 참여에 실패했습니다: " + memberError.message);
+          setLoading(false);
+          return;
+        }
+
+        window.location.reload();
+        return;
+      }
+
+      // Strategy 3: Direct table query (before any security patch)
       const { data: invitation } = await supabase
         .from("invitations")
         .select("*")
@@ -49,7 +86,7 @@ function JoinCommunityForm() {
         .single();
 
       if (!invitation) {
-        setError("유효하지 않은 초대 코드입니다.");
+        setError("유효하지 않은 초대 코드입니다. 코드를 다시 확인해 주세요.");
         setLoading(false);
         return;
       }
@@ -66,7 +103,6 @@ function JoinCommunityForm() {
         return;
       }
 
-      // Create membership
       const { error: memberError } = await supabase
         .from("community_members")
         .upsert({
@@ -77,12 +113,11 @@ function JoinCommunityForm() {
         });
 
       if (memberError) {
-        setError("커뮤니티 참여에 실패했습니다. 다시 시도해 주세요.");
+        setError("커뮤니티 참여에 실패했습니다: " + memberError.message);
         setLoading(false);
         return;
       }
 
-      // Try to increment used count (may fail due to RLS, that's ok)
       await supabase
         .from("invitations")
         .update({ used_count: invitation.used_count + 1 })
