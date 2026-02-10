@@ -32,6 +32,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  MapPin,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -59,6 +60,7 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
     { href: "/app/members", label: "멤버", icon: Users },
     { href: "/app/resources", label: "자료실", icon: FolderOpen },
     { href: "/app/documents", label: "문서", icon: FileText },
+    { href: "/app/allergy-map", label: "알레르기지도", icon: MapPin },
     {
       href: "/app/notifications",
       label: "알림",
