@@ -82,8 +82,8 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Bell className="h-6 w-6" />
+        <h1 className="text-xl font-bold flex items-center gap-2 sm:text-2xl">
+          <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
           알림
           {unreadCount > 0 && (
             <span className="text-sm font-normal text-muted-foreground">

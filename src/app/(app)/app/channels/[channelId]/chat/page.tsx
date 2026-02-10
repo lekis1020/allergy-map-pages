@@ -115,7 +115,7 @@ export default function ChatPage() {
   let lastDate = "";
 
   return (
-    <div className="flex h-[calc(100vh-2rem)] flex-col md:h-[calc(100vh-3rem)]">
+    <div className="flex h-[calc(100dvh-5rem)] flex-col md:h-[calc(100dvh-3rem)]">
       {/* Header */}
       <div className="flex items-center gap-3 border-b pb-3">
         <Link href="/app" className="md:hidden">

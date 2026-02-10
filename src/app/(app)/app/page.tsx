@@ -76,7 +76,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-xl font-bold sm:text-2xl">
           안녕하세요, {user?.display_name}님
         </h1>
         <p className="text-muted-foreground">

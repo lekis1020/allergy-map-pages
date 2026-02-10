@@ -114,13 +114,13 @@ export default function PostDetailPage() {
 
       {post && (
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <Avatar className="h-12 w-12">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                 <AvatarImage src={post.profiles.avatar_url || undefined} />
                 <AvatarFallback>{post.profiles.display_name?.charAt(0)}</AvatarFallback>
               </Avatar>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-medium">{post.profiles.display_name}</span>
                   <span className="text-sm text-muted-foreground">
@@ -189,7 +189,7 @@ export default function PostDetailPage() {
 
               {/* Replies */}
               {repliesMap[comment.id]?.map((reply) => (
-                <div key={reply.id} className="ml-11 flex items-start gap-3">
+                <div key={reply.id} className="ml-8 sm:ml-11 flex items-start gap-3">
                   <Avatar className="h-7 w-7">
                     <AvatarImage src={reply.profiles.avatar_url || undefined} />
                     <AvatarFallback>{reply.profiles.display_name?.charAt(0)}</AvatarFallback>

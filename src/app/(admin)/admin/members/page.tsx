@@ -94,8 +94,8 @@ export default function AdminMembersPage() {
         <Link href="/admin" className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Users className="h-6 w-6" />
+        <h1 className="text-xl font-bold flex items-center gap-2 sm:text-2xl">
+          <Users className="h-5 w-5 sm:h-6 sm:w-6" />
           멤버 관리
         </h1>
       </div>
@@ -126,7 +126,7 @@ export default function AdminMembersPage() {
                         {roleLabel(member.role)}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground truncate">
                       {member.profiles.email} · 가입: {formatDate(member.joined_at)}
                     </p>
                   </div>

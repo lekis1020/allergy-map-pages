@@ -227,7 +227,7 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed left-4 top-3 z-50 md:hidden"
+        className="fixed left-2 top-2 z-50 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm shadow-sm border md:hidden"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -242,14 +242,14 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex h-screen w-64 flex-col border-r bg-sidebar">
+      <aside className="hidden md:flex h-dvh w-64 flex-shrink-0 flex-col border-r bg-sidebar">
         <SidebarContent />
       </aside>
 
       {/* Mobile sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-sidebar transition-transform duration-200 md:hidden",
+          "fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] bg-sidebar shadow-xl transition-transform duration-200 md:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

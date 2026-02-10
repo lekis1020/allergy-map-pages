@@ -94,8 +94,8 @@ export default function AdminChannelsPage() {
           <Link href="/admin" className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Hash className="h-6 w-6" />
+          <h1 className="text-xl font-bold flex items-center gap-2 sm:text-2xl">
+            <Hash className="h-5 w-5 sm:h-6 sm:w-6" />
             채널 관리
           </h1>
         </div>

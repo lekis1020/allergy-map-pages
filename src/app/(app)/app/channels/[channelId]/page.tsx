@@ -137,16 +137,11 @@ export default function ChannelPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link href="/app" className="md:hidden">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h1 className="text-2xl font-bold">#{channel?.name}</h1>
-          </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-bold truncate sm:text-2xl">#{channel?.name}</h1>
           {channel?.description && (
-            <p className="text-sm text-muted-foreground mt-1">{channel.description}</p>
+            <p className="text-sm text-muted-foreground mt-1 truncate">{channel.description}</p>
           )}
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

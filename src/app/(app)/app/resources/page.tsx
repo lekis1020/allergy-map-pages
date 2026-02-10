@@ -191,8 +191,8 @@ export default function ResourcesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <FolderOpen className="h-6 w-6" />
+        <h1 className="text-xl font-bold flex items-center gap-2 sm:text-2xl">
+          <FolderOpen className="h-5 w-5 sm:h-6 sm:w-6" />
           자료실
         </h1>
         <div>

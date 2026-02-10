@@ -79,7 +79,7 @@ export default function DocumentEditorPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/app/documents"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -95,7 +95,7 @@ export default function DocumentEditorPage() {
             </Badge>
           )}
           {doc && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground hidden sm:inline">
               마지막 수정: {formatRelativeTime(doc.updated_at)}
             </span>
           )}
@@ -116,7 +116,7 @@ export default function DocumentEditorPage() {
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="min-h-[calc(100vh-250px)] resize-none border-none shadow-none focus-visible:ring-0 px-0 text-base leading-relaxed"
+        className="min-h-[calc(100dvh-250px)] resize-none border-none shadow-none focus-visible:ring-0 px-0 text-base leading-relaxed"
         placeholder="여기에 내용을 작성하세요... (Markdown 지원)"
       />
     </div>

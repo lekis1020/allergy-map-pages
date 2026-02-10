@@ -96,8 +96,8 @@ export default function AdminInvitationsPage() {
           <Link href="/admin" className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Ticket className="h-6 w-6" />
+          <h1 className="text-xl font-bold flex items-center gap-2 sm:text-2xl">
+            <Ticket className="h-5 w-5 sm:h-6 sm:w-6" />
             초대 관리
           </h1>
         </div>
@@ -163,10 +163,10 @@ export default function AdminInvitationsPage() {
             return (
               <Card key={invitation.id} className={!active ? "opacity-60" : ""}>
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <code className="text-lg font-mono font-bold tracking-widest">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <code className="text-base font-mono font-bold tracking-widest sm:text-lg">
                           {invitation.code}
                         </code>
                         {active && <Badge>활성</Badge>}
