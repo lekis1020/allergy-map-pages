@@ -89,7 +89,11 @@ export default function ChatPage() {
 
   async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
-    if (!newMessage.trim() || !user || sending) return;
+    if (!newMessage.trim() || sending) return;
+    if (!user) {
+      alert("로그인 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
     setSending(true);
 
     const { error } = await supabase.from("messages").insert({

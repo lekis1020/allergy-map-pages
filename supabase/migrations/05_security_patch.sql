@@ -27,13 +27,32 @@ CREATE POLICY "Users can create own notifications"
   ON notifications FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
--- 3. 초대코드 사용 시 카운트 업데이트 허용 (멤버용)
--- 기존 UPDATE 정책은 admin만 가능 → 일반 사용자도 used_count만 업데이트 가능하도록
-CREATE POLICY "Authenticated users can increment invitation used_count"
-  ON invitations FOR UPDATE TO authenticated
-  USING (true)
-  WITH CHECK (true);
--- Note: 실제 업데이트 내용 제한은 앱 레벨에서 처리
+-- 3. 초대코드 사용 시 카운트 업데이트: RPC 함수로 안전하게 처리
+CREATE OR REPLACE FUNCTION public.use_invite_code(invite_code TEXT, for_user_id UUID)
+RETURNS BOOLEAN AS $$
+DECLARE
+  v_invitation RECORD;
+BEGIN
+  SELECT * INTO v_invitation
+  FROM invitations
+  WHERE code = upper(invite_code)
+    AND used_count < max_uses
+    AND (expires_at IS NULL OR expires_at > now())
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN FALSE;
+  END IF;
+
+  UPDATE invitations SET used_count = used_count + 1 WHERE id = v_invitation.id;
+
+  INSERT INTO community_members (community_id, user_id, role, status)
+  VALUES (v_invitation.community_id, for_user_id, 'member', 'active')
+  ON CONFLICT DO NOTHING;
+
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 4. messages에 community 기반 INSERT 검증 추가
 DROP POLICY IF EXISTS "Members can send messages" ON messages;

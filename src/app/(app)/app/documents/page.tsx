@@ -48,7 +48,11 @@ export default function DocumentsPage() {
   }, [membership, supabase]);
 
   async function handleCreateDocument() {
-    if (!newTitle.trim() || !user || !membership) return;
+    if (!newTitle.trim()) return;
+    if (!user || !membership) {
+      alert("로그인 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
     setLoading(true);
 
     const { data, error } = await supabase

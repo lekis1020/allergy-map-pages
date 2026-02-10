@@ -73,7 +73,11 @@ export default function ResourcesPage() {
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
-    if (!files || !user || !membership) return;
+    if (!files) return;
+    if (!user || !membership) {
+      alert("로그인 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
     setUploading(true);
 
     try {
@@ -133,7 +137,7 @@ export default function ResourcesPage() {
           author_id: user.id,
           content: `파일 공유: ${attachments.map((a) => a.filename).join(", ")}`,
           content_type: "text",
-          attachments: attachments as unknown as undefined,
+          attachments: JSON.parse(JSON.stringify(attachments)),
         });
 
         if (postError) {

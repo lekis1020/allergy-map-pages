@@ -82,7 +82,11 @@ export default function ChannelPage() {
   }, [channelId, supabase, loadChannel]);
 
   async function handleCreatePost() {
-    if (!newContent.trim() || !membership || !user) return;
+    if (!newContent.trim()) return;
+    if (!user || !membership) {
+      alert("로그인 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
     setLoading(true);
 
     const { error } = await supabase.from("posts").insert({
