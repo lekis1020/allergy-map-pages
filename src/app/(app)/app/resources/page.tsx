@@ -6,11 +6,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatRelativeTime } from "@/lib/utils";
 import type { PostWithAuthor } from "@/types/database";
-import { FolderOpen, Upload, FileText, Image, File, Search, Download } from "lucide-react";
+import { FolderOpen, Upload, FileText, Image, File, Search, Download, X } from "lucide-react";
 
 const fileTypeIcons: Record<string, typeof FileText> = {
   pdf: FileText,
@@ -25,11 +24,17 @@ function getFileIcon(filename: string) {
   return File;
 }
 
+function isImageFile(filename: string) {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext || "");
+}
+
 export default function ResourcesPage() {
   const { user, membership } = useAuth();
   const [posts, setPosts] = useState<PostWithAuthor[]>([]);
   const [search, setSearch] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
@@ -245,25 +250,49 @@ export default function ResourcesPage() {
                       <p className="text-sm mb-3">{post.content}</p>
                       {attachments.length > 0 && (
                         <div className="space-y-2">
-                          {attachments.map((att, i) => {
-                            const Icon = getFileIcon(att.filename);
-                            return (
-                              <a
-                                key={i}
-                                href={att.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 rounded-md border p-2 text-sm hover:bg-accent transition-colors"
-                              >
-                                <Icon className="h-4 w-4 text-muted-foreground" />
-                                <span className="flex-1 truncate">{att.filename}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {(att.size / 1024).toFixed(0)}KB
-                                </span>
-                                <Download className="h-4 w-4 text-muted-foreground" />
-                              </a>
-                            );
-                          })}
+                          {/* Image previews */}
+                          {attachments.filter((att) => isImageFile(att.filename)).length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {attachments
+                                .filter((att) => isImageFile(att.filename))
+                                .map((att, i) => (
+                                  <button
+                                    key={`img-${i}`}
+                                    onClick={() => setLightboxUrl(att.url)}
+                                    className="relative aspect-square rounded-md overflow-hidden border hover:opacity-80 transition-opacity cursor-pointer bg-muted"
+                                  >
+                                    <img
+                                      src={att.url}
+                                      alt={att.filename}
+                                      className="h-full w-full object-cover"
+                                      loading="lazy"
+                                    />
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                          {/* Non-image files */}
+                          {attachments
+                            .filter((att) => !isImageFile(att.filename))
+                            .map((att, i) => {
+                              const Icon = getFileIcon(att.filename);
+                              return (
+                                <a
+                                  key={`file-${i}`}
+                                  href={att.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 rounded-md border p-2 text-sm hover:bg-accent transition-colors"
+                                >
+                                  <Icon className="h-4 w-4 text-muted-foreground" />
+                                  <span className="flex-1 truncate">{att.filename}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {(att.size / 1024).toFixed(0)}KB
+                                  </span>
+                                  <Download className="h-4 w-4 text-muted-foreground" />
+                                </a>
+                              );
+                            })}
                         </div>
                       )}
                     </div>
@@ -274,6 +303,37 @@ export default function ResourcesPage() {
           })
         )}
       </div>
+
+      {/* Image Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="미리보기"
+            className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <a
+            href={lightboxUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm text-white hover:bg-black/70 transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Download className="h-4 w-4" />
+            원본 다운로드
+          </a>
+        </div>
+      )}
     </div>
   );
 }

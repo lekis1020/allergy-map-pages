@@ -23,7 +23,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { formatRelativeTime } from "@/lib/utils";
 import type { Channel, PostWithAuthor } from "@/types/database";
-import { Plus, Pin, MessageCircle, ArrowLeft } from "lucide-react";
+import { Plus, Pin, MessageCircle, ArrowLeft, MessageSquare } from "lucide-react";
 
 export default function ChannelPage() {
   const params = useParams();
@@ -31,6 +31,7 @@ export default function ChannelPage() {
   const { user, membership } = useAuth();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [posts, setPosts] = useState<PostWithAuthor[]>([]);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -53,7 +54,25 @@ export default function ChannelPage() {
       .order("pinned", { ascending: false })
       .order("created_at", { ascending: false });
 
-    if (postsData) setPosts(postsData as unknown as PostWithAuthor[]);
+    if (postsData) {
+      setPosts(postsData as unknown as PostWithAuthor[]);
+
+      // Load comment counts for all posts
+      const postIds = postsData.map((p) => p.id);
+      if (postIds.length > 0) {
+        const { data: counts } = await supabase
+          .from("comments")
+          .select("post_id")
+          .in("post_id", postIds);
+        if (counts) {
+          const countMap: Record<string, number> = {};
+          for (const c of counts) {
+            countMap[c.post_id] = (countMap[c.post_id] || 0) + 1;
+          }
+          setCommentCounts(countMap);
+        }
+      }
+    }
   }, [channelId, supabase]);
 
   useEffect(() => {
@@ -218,6 +237,12 @@ export default function ChannelPage() {
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {post.content}
                       </p>
+                      {(commentCounts[post.id] || 0) > 0 && (
+                        <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                          <span>댓글 {commentCounts[post.id]}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
