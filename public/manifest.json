@@ -1,7 +1,7 @@
 {
-  "name": "커뮤니티",
-  "short_name": "커뮤니티",
-  "description": "비공개 비즈니스 네트워킹 커뮤니티",
+  "name": "KAACI_JR",
+  "short_name": "KAACI_JR",
+  "description": "KAACI_JR 비공개 비즈니스 네트워킹",
   "start_url": "/app",
   "display": "standalone",
   "background_color": "#ffffff",

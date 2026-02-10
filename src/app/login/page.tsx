@@ -61,10 +61,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">
-            {process.env.NEXT_PUBLIC_APP_NAME || "커뮤니티"}
+            KAACI_JR
           </CardTitle>
           <CardDescription>
-            비공개 커뮤니티에 로그인하세요
+            KAACI_JR에 로그인하세요
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

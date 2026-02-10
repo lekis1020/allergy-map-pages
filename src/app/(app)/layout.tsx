@@ -69,7 +69,7 @@ function JoinCommunityForm() {
           });
 
         if (memberError) {
-          setError("커뮤니티 참여에 실패했습니다: " + memberError.message);
+          setError("KAACI_JR 참여에 실패했습니다: " + memberError.message);
           setLoading(false);
           return;
         }
@@ -113,7 +113,7 @@ function JoinCommunityForm() {
         });
 
       if (memberError) {
-        setError("커뮤니티 참여에 실패했습니다: " + memberError.message);
+        setError("KAACI_JR 참여에 실패했습니다: " + memberError.message);
         setLoading(false);
         return;
       }
@@ -142,9 +142,9 @@ function JoinCommunityForm() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <Ticket className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">커뮤니티 참여</CardTitle>
+          <CardTitle className="text-2xl">KAACI_JR 참여</CardTitle>
           <CardDescription>
-            초대 코드를 입력하여 커뮤니티에 참여하세요
+            초대 코드를 입력하여 KAACI_JR에 참여하세요
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -176,7 +176,7 @@ function JoinCommunityForm() {
               ) : (
                 <>
                   <LogIn className="mr-2 h-4 w-4" />
-                  커뮤니티 참여하기
+                  KAACI_JR 참여하기
                 </>
               )}
             </Button>
