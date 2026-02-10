@@ -3,6 +3,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegistrar } from "@/components/sw-registrar";
 import "./globals.css";
 
+// Supabase 연동 앱이므로 빌드 시 정적 프리렌더링을 비활성화
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: {
     default: "커뮤니티",
