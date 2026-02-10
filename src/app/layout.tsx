@@ -8,15 +8,15 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: {
-    default: "커뮤니티",
-    template: "%s | 커뮤니티",
+    default: "KAACI_JR",
+    template: "%s | KAACI_JR",
   },
-  description: "비공개 비즈니스 네트워킹 커뮤니티",
+  description: "KAACI_JR 비공개 비즈니스 네트워킹",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "커뮤니티",
+    title: "KAACI_JR",
   },
 };
 

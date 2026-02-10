@@ -14,12 +14,12 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mx-auto max-w-2xl text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-          {process.env.NEXT_PUBLIC_APP_NAME || "커뮤니티"}
+          KAACI_JR
         </h1>
         <p className="mt-6 text-lg leading-8 text-muted-foreground">
           같은 업종, 같은 관심사를 가진 전문가들이 모이는
           <br />
-          비공개 비즈니스 네트워킹 커뮤니티입니다.
+          KAACI_JR 비공개 비즈니스 네트워킹입니다.
         </p>
         <div className="mt-10 flex items-center justify-center gap-4">
           <Link
