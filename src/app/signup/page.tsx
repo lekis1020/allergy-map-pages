@@ -36,13 +36,27 @@ function SignupForm() {
   const supabase = createClient();
 
   async function validateInviteCode(code: string): Promise<{ valid: boolean; communityId?: string }> {
-    const { data, error } = await supabase
+    // Try RPC function first (available after security patch)
+    const { data: rpcData, error: rpcError } = await supabase
       .rpc("validate_invite_code", { invite_code: code.toUpperCase() });
 
-    if (error || !data || data.length === 0) return { valid: false };
-    if (!data[0].is_valid) return { valid: false };
+    if (!rpcError && rpcData && rpcData.length > 0) {
+      if (!rpcData[0].is_valid) return { valid: false };
+      return { valid: true, communityId: rpcData[0].community_id };
+    }
 
-    return { valid: true, communityId: data[0].community_id };
+    // Fallback: direct table query (before security patch)
+    const { data: invitation } = await supabase
+      .from("invitations")
+      .select("community_id, max_uses, used_count, expires_at")
+      .eq("code", code.toUpperCase())
+      .single();
+
+    if (!invitation) return { valid: false };
+    if (invitation.used_count >= invitation.max_uses) return { valid: false };
+    if (invitation.expires_at && new Date(invitation.expires_at) < new Date()) return { valid: false };
+
+    return { valid: true, communityId: invitation.community_id };
   }
 
   async function handleEmailSignup(e: React.FormEvent) {
