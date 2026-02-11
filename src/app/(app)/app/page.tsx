@@ -80,7 +80,7 @@ export default function DashboardPage() {
           안녕하세요, {user?.display_name}님
         </h1>
         <p className="text-sm text-muted-foreground sm:text-base">
-          {community?.name || "KAACI_JR"}에 오신 것을 환영합니다
+          KAACI_Jr에 오신 것을 환영합니다
         </p>
       </div>
 
