@@ -3,6 +3,7 @@
   "short_name": "KAACI_JR",
   "description": "KAACI_JR 비공개 비즈니스 네트워킹",
   "start_url": "/app",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#171717",

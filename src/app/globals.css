@@ -100,6 +100,11 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
   }
+  /* Prevent long words/URLs from overflowing containers */
+  p, h1, h2, h3, h4, h5, h6, span, li {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
 }
 
 /* PWA safe area for notched phones */
@@ -143,6 +148,19 @@ html, body {
     overscroll-behavior-y: none;
     -webkit-user-select: none;
     user-select: auto;
+  }
+
+  /* Ensure full viewport coverage — no browser chrome gaps */
+  main {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* iOS Safari standalone detection via apple-mobile-web-app-capable */
+@media (display-mode: standalone),
+  (max-device-width: 1024px) and (orientation: portrait) {
+  .standalone-safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
   }
 }
 

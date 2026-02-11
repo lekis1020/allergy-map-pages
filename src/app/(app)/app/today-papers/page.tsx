@@ -100,6 +100,37 @@ function formatDate(dateStr: string) {
   return dateStr;
 }
 
+/** Merge sections with the same label and deduplicate overlapping sentences */
+function deduplicateSections(
+  sections: AbstractSection[],
+): AbstractSection[] {
+  // 1. Merge entries with the same label
+  const merged: AbstractSection[] = [];
+  for (const sec of sections) {
+    const existing = merged.find((m) => m.label === sec.label);
+    if (existing) {
+      existing.text += " " + sec.text;
+    } else {
+      merged.push({ label: sec.label, text: sec.text });
+    }
+  }
+
+  // 2. Remove sentences that appear in an earlier section
+  const seen = new Set<string>();
+  return merged.map((sec) => {
+    const sentences = sec.text
+      .split(/(?<=[.!?])\s+/)
+      .filter((s) => s.trim().length > 0);
+    const unique = sentences.filter((s) => {
+      const normalised = s.trim().toLowerCase();
+      if (seen.has(normalised)) return false;
+      seen.add(normalised);
+      return true;
+    });
+    return { label: sec.label, text: unique.join(" ") };
+  }).filter((sec) => sec.text.trim().length > 0);
+}
+
 // ══════════════════════════════════════════════════════════════════
 //  Component
 // ══════════════════════════════════════════════════════════════════
@@ -199,8 +230,24 @@ export default function TodayPapersPage() {
     return categoryMap[article.uid] || [];
   };
 
-  // ── Filtering (text + category) ─────────────────────────────────
+  // ── Helper: check if article has a real abstract ────────────────
+  const hasAbstract = (pmid: string): boolean => {
+    const sections = abstracts[pmid];
+    if (!sections || sections.length === 0) return false;
+    // Exclude placeholder "초록이 제공되지 않습니다."
+    if (
+      sections.length === 1 &&
+      sections[0].text === "초록이 제공되지 않습니다."
+    )
+      return false;
+    return true;
+  };
+
+  // ── Filtering (abstract required + text + category) ────────────
   const filteredArticles = articles.filter((a) => {
+    // Exclude papers without abstracts
+    if (!hasAbstract(a.uid)) return false;
+
     if (searchFilter) {
       const s = searchFilter.toLowerCase();
       const authorStr = a.authors?.map((au) => au.name).join(" ") || "";
@@ -225,7 +272,7 @@ export default function TodayPapersPage() {
 
   // ── Render ──────────────────────────────────────────────────────
   return (
-    <div className="space-y-4 sm:space-y-6 overflow-hidden">
+    <div className="space-y-4 sm:space-y-6 min-w-0">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -377,11 +424,13 @@ export default function TodayPapersPage() {
             .filter(Boolean)
             .join(" ");
           const articleCats = getArticleCategories(article);
-          const articleAbstract = abstracts[article.uid];
+          const articleAbstract = abstracts[article.uid]
+            ? deduplicateSections(abstracts[article.uid])
+            : undefined;
 
           return (
-            <Card key={article.uid} className="overflow-hidden">
-              <CardContent className="p-4 sm:p-5">
+            <Card key={article.uid} className="overflow-hidden min-w-0">
+              <CardContent className="p-4 sm:p-5 min-w-0">
                 {/* Category badges */}
                 {articleCats.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-2">
@@ -404,7 +453,7 @@ export default function TodayPapersPage() {
                   onClick={() => toggleExpand(article.uid)}
                   className="w-full text-left group"
                 >
-                  <h3 className="text-sm font-semibold leading-snug sm:text-base group-hover:text-primary transition-colors">
+                  <h3 className="text-sm font-semibold leading-snug sm:text-base group-hover:text-primary transition-colors break-words">
                     {article.title}
                   </h3>
                 </button>
@@ -415,7 +464,7 @@ export default function TodayPapersPage() {
                     {authorList}
                   </p>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="text-xs font-medium text-primary/80">
+                    <span className="text-xs font-medium text-primary/80 break-words min-w-0">
                       {journalInfo}
                     </span>
                     <span className="text-xs text-muted-foreground">
@@ -496,7 +545,7 @@ export default function TodayPapersPage() {
                                 {section.label}
                               </p>
                             )}
-                            <p className="text-sm leading-relaxed text-muted-foreground">
+                            <p className="text-sm leading-relaxed text-muted-foreground break-words">
                               {section.text}
                             </p>
                           </div>

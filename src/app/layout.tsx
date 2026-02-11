@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegistrar } from "@/components/sw-registrar";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import "./globals.css";
 
 // Supabase 연동 앱이므로 빌드 시 정적 프리렌더링을 비활성화
@@ -17,6 +18,10 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "KAACI_JR",
+    startupImage: [],
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
   },
 };
 
@@ -58,6 +63,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
           <ServiceWorkerRegistrar />
+          <PWAInstallPrompt />
         </ThemeProvider>
       </body>
     </html>

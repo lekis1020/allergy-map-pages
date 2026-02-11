@@ -206,7 +206,7 @@ async function fetchAllAbstracts(
       abstractTextMatches[0][1] !== undefined;
 
     if (hasLabels) {
-      const sections: AbstractSection[] = abstractTextMatches
+      const rawSections = abstractTextMatches
         .map((m) => {
           const rawLabel = m[1] || "";
           const label = IMRAD_LABELS[rawLabel.toUpperCase()] || rawLabel;
@@ -214,7 +214,18 @@ async function fetchAllAbstracts(
           return { label, text };
         })
         .filter((s) => s.text.length > 0);
-      abstracts[pmid] = sections;
+
+      // Merge sections that mapped to the same IMRAD label (preserving order)
+      const merged: AbstractSection[] = [];
+      for (const sec of rawSections) {
+        const existing = merged.find((m) => m.label === sec.label);
+        if (existing) {
+          existing.text += " " + sec.text;
+        } else {
+          merged.push({ ...sec });
+        }
+      }
+      abstracts[pmid] = merged;
     } else {
       const fullText = abstractTextMatches
         .map((m) => m[2].replace(/<[^>]+>/g, "").trim())
@@ -232,8 +243,14 @@ Return a JSON array of objects: [{"pmid":"...","sections":[{"label":"...","text"
 Allowed labels: "Background", "Objective", "Methods", "Results", "Conclusion", "Discussion"
 
 Rules:
-- Every sentence must belong to exactly one section
+- CRITICAL: Each sentence must appear in EXACTLY ONE section — never duplicate a sentence across multiple sections
 - Keep original text verbatim — do not paraphrase or omit anything
+- Assign each sentence to the single most appropriate section
+- "Background" = context, rationale, what is already known
+- "Objective" = specific aim or purpose of THIS study (usually 1-2 sentences)
+- "Methods" = study design, participants, procedures, measurements, statistical analysis
+- "Results" = findings, data, numbers, outcomes
+- "Conclusion" = interpretation, implications, summary of findings
 - Use at minimum: Background, Methods, Results, Conclusion
 - Output valid JSON only, no markdown fences`;
 
