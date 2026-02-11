@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 // ── Config ────────────────────────────────────────────────────────
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const CRON_SECRET = process.env.CRON_SECRET || "";
 
 const PUBMED_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
@@ -25,7 +28,6 @@ const SEARCH_TERMS = [
   "eosinophilic",
 ];
 
-// IMRAD label map for structured PubMed abstracts
 const IMRAD_LABELS: Record<string, string> = {
   BACKGROUND: "Background",
   INTRODUCTION: "Background",
@@ -91,7 +93,7 @@ async function callGemini(systemPrompt: string, userContent: string) {
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Gemini API error: ${res.status} ${errText}`);
+    throw new Error(`Gemini API error: ${res.status} ${errText.slice(0, 200)}`);
   }
 
   const data = await res.json();
@@ -102,10 +104,10 @@ async function callGemini(systemPrompt: string, userContent: string) {
 async function fetchPubMedArticles() {
   const today = todayStr();
   const query = SEARCH_TERMS.map((t) => `"${t}"`).join(" OR ");
-  const searchUrl = `${PUBMED_BASE}/esearch.fcgi?db=pubmed&term=(${encodeURIComponent(query)})&datetype=pdat&mindate=${today}&maxdate=${today}&retmode=json&retmax=100&sort=date`;
+  const searchUrl = `${PUBMED_BASE}/esearch.fcgi?db=pubmed&term=(${encodeURIComponent(query)})&datetype=pdat&mindate=${today}&maxdate=${today}&retmode=json&retmax=50&sort=date`;
 
   const searchRes = await fetch(searchUrl);
-  if (!searchRes.ok) throw new Error("PubMed search failed");
+  if (!searchRes.ok) throw new Error(`PubMed search failed: ${searchRes.status}`);
   const searchData = await searchRes.json();
 
   const ids: string[] = searchData.esearchresult?.idlist || [];
@@ -115,7 +117,7 @@ async function fetchPubMedArticles() {
 
   const summaryUrl = `${PUBMED_BASE}/esummary.fcgi?db=pubmed&id=${ids.join(",")}&retmode=json`;
   const summaryRes = await fetch(summaryUrl);
-  if (!summaryRes.ok) throw new Error("PubMed summary failed");
+  if (!summaryRes.ok) throw new Error(`PubMed summary failed: ${summaryRes.status}`);
   const summaryData = await summaryRes.json();
 
   const result = summaryData.result;
@@ -161,38 +163,33 @@ Rules:
 
   const categoryMap: Record<string, string[]> = {};
   for (const r of results) {
-    const valid = r.categories.filter((c) => CATEGORIES.includes(c));
+    const valid = r.categories.filter((c: string) => CATEGORIES.includes(c));
     categoryMap[r.uid] = valid.length > 0 ? valid : ["Others"];
   }
 
   return categoryMap;
 }
 
-// ── Step 3: Fetch & parse all abstracts ───────────────────────────
+// ── Step 3: Fetch & parse abstracts (structured only, skip Gemini to save time) ──
 async function fetchAllAbstracts(
   ids: string[],
 ): Promise<Record<string, AbstractSection[]>> {
   if (ids.length === 0) return {};
 
-  // Fetch all abstracts in one XML call (PubMed supports comma-separated ids)
   const url = `${PUBMED_BASE}/efetch.fcgi?db=pubmed&id=${ids.join(",")}&retmode=xml`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error("PubMed efetch failed");
+  if (!res.ok) throw new Error(`PubMed efetch failed: ${res.status}`);
   const xmlText = await res.text();
 
-  // Parse XML - use regex-based extraction for server environment
   const abstracts: Record<string, AbstractSection[]> = {};
   const unstructured: { pmid: string; text: string }[] = [];
 
-  // Split by <PubmedArticle> blocks
   const articleBlocks = xmlText.split(/<PubmedArticle>/);
   for (const block of articleBlocks) {
-    // Extract PMID
     const pmidMatch = block.match(/<PMID[^>]*>(\d+)<\/PMID>/);
     if (!pmidMatch) continue;
     const pmid = pmidMatch[1];
 
-    // Check for AbstractText elements
     const abstractTextMatches = [
       ...block.matchAll(
         /<AbstractText(?:\s+Label="([^"]*)")?[^>]*>([\s\S]*?)<\/AbstractText>/g,
@@ -209,7 +206,6 @@ async function fetchAllAbstracts(
       abstractTextMatches[0][1] !== undefined;
 
     if (hasLabels) {
-      // Structured abstract
       const sections: AbstractSection[] = abstractTextMatches
         .map((m) => {
           const rawLabel = m[1] || "";
@@ -220,7 +216,6 @@ async function fetchAllAbstracts(
         .filter((s) => s.text.length > 0);
       abstracts[pmid] = sections;
     } else {
-      // Unstructured → queue for Gemini
       const fullText = abstractTextMatches
         .map((m) => m[2].replace(/<[^>]+>/g, "").trim())
         .join(" ");
@@ -228,7 +223,7 @@ async function fetchAllAbstracts(
     }
   }
 
-  // ── Batch LLM call for unstructured abstracts ──
+  // Batch LLM call for unstructured abstracts (single batch to save time)
   if (unstructured.length > 0) {
     const systemPrompt = `You are a biomedical abstract parser. Given a JSON array of objects with "pmid" and "abstract" fields, split each abstract into IMRAD sections.
 
@@ -242,8 +237,8 @@ Rules:
 - Use at minimum: Background, Methods, Results, Conclusion
 - Output valid JSON only, no markdown fences`;
 
-    // Process in batches of 10 to stay within token limits
-    const BATCH_SIZE = 10;
+    // Process in batches of 15
+    const BATCH_SIZE = 15;
     for (let i = 0; i < unstructured.length; i += BATCH_SIZE) {
       const batch = unstructured.slice(i, i + BATCH_SIZE);
       const input = batch.map((b) => ({
@@ -268,7 +263,6 @@ Rules:
         }
       } catch (err) {
         console.error(`Gemini batch error (batch ${i}):`, err);
-        // Fallback: store as plain text
         for (const b of batch) {
           if (!abstracts[b.pmid]) {
             abstracts[b.pmid] = [{ label: "Abstract", text: b.text }];
@@ -283,7 +277,7 @@ Rules:
 
 // ── Main handler ──────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
-  // Auth check: require CRON_SECRET
+  // Auth check
   const authHeader = request.headers.get("authorization");
   const querySecret = request.nextUrl.searchParams.get("secret");
   const providedSecret = authHeader?.replace("Bearer ", "") || querySecret;
@@ -292,9 +286,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!SUPABASE_SERVICE_KEY) {
+  // Config check
+  const missing: string[] = [];
+  if (!SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!SUPABASE_SERVICE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!GEMINI_API_KEY) missing.push("GEMINI_API_KEY");
+  if (missing.length > 0) {
     return NextResponse.json(
-      { error: "SUPABASE_SERVICE_ROLE_KEY not configured" },
+      { error: `Missing env vars: ${missing.join(", ")}` },
       { status: 500 },
     );
   }
@@ -302,15 +301,11 @@ export async function GET(request: NextRequest) {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
   try {
-    console.log("[daily-papers] Starting daily paper collection...");
-
     // 1) Fetch PubMed articles
     const { articles, totalCount } = await fetchPubMedArticles();
-    console.log(`[daily-papers] Found ${articles.length} articles`);
 
     if (articles.length === 0) {
-      // Upsert empty record for today
-      await supabase.from("daily_papers").upsert(
+      const { error: upsertErr } = await supabase.from("daily_papers").upsert(
         {
           date: todayISO(),
           articles: [],
@@ -320,28 +315,30 @@ export async function GET(request: NextRequest) {
         },
         { onConflict: "date" },
       );
+      if (upsertErr) throw new Error(`Supabase upsert error: ${JSON.stringify(upsertErr)}`);
 
-      return NextResponse.json({
-        success: true,
-        date: todayISO(),
-        count: 0,
-      });
+      return NextResponse.json({ success: true, date: todayISO(), count: 0 });
     }
 
     // 2) Categorise via Gemini
-    console.log("[daily-papers] Categorizing articles...");
-    const categoryMap = await categorizeArticles(articles);
+    let categoryMap: Record<string, string[]> = {};
+    try {
+      categoryMap = await categorizeArticles(articles);
+    } catch (err) {
+      console.error("Categorization failed, continuing:", err);
+    }
 
-    // 3) Fetch & parse all abstracts (structured + Gemini for unstructured)
-    console.log("[daily-papers] Fetching & parsing abstracts...");
-    const pmids = articles.map(
-      (a: { uid: string }) => a.uid,
-    );
-    const abstractsMap = await fetchAllAbstracts(pmids);
+    // 3) Fetch & parse all abstracts
+    let abstractsMap: Record<string, AbstractSection[]> = {};
+    try {
+      const pmids = articles.map((a: { uid: string }) => a.uid);
+      abstractsMap = await fetchAllAbstracts(pmids);
+    } catch (err) {
+      console.error("Abstract parsing failed, continuing:", err);
+    }
 
     // 4) Save to Supabase
-    console.log("[daily-papers] Saving to Supabase...");
-    const { error } = await supabase.from("daily_papers").upsert(
+    const { error: upsertErr } = await supabase.from("daily_papers").upsert(
       {
         date: todayISO(),
         articles,
@@ -352,9 +349,10 @@ export async function GET(request: NextRequest) {
       { onConflict: "date" },
     );
 
-    if (error) throw error;
+    if (upsertErr) {
+      throw new Error(`Supabase upsert error: ${JSON.stringify(upsertErr)}`);
+    }
 
-    console.log("[daily-papers] Done!");
     return NextResponse.json({
       success: true,
       date: todayISO(),
@@ -365,9 +363,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error("[daily-papers] Error:", err);
     return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : "Unknown error",
-      },
+      { error: err instanceof Error ? err.message : String(err) },
       { status: 500 },
     );
   }
