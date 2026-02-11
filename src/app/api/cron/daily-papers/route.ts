@@ -277,13 +277,16 @@ Rules:
 
 // ── Main handler ──────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
-  // Auth check
-  const authHeader = request.headers.get("authorization");
+  // Auth check (skip if CRON_SECRET is not configured)
   const querySecret = request.nextUrl.searchParams.get("secret");
-  const providedSecret = authHeader?.replace("Bearer ", "") || querySecret;
+  const authHeader = request.headers.get("authorization");
+  const providedSecret = querySecret || authHeader?.replace("Bearer ", "");
 
-  if (CRON_SECRET && providedSecret !== CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (CRON_SECRET && CRON_SECRET !== "your-cron-secret-here" && providedSecret !== CRON_SECRET) {
+    return NextResponse.json(
+      { error: "Unauthorized", hint: "secret param does not match CRON_SECRET env var" },
+      { status: 401 },
+    );
   }
 
   // Config check
