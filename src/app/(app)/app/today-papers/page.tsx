@@ -253,7 +253,7 @@ export default function TodayPapersPage() {
       </div>
 
       {/* Search filter */}
-      <div className="relative max-w-sm">
+      <div className="relative w-full max-w-sm">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input
           placeholder="제목, 저자, 저널명 검색..."
@@ -263,41 +263,43 @@ export default function TodayPapersPage() {
         />
       </div>
 
-      {/* ── Category filter tags ──────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
-          <Sparkles className="h-3 w-3" />
-          분야 필터:
-        </span>
-        {CATEGORIES.map((cat) => {
-          const isActive = activeCategories.has(cat.id);
-          const count = articles.filter((a) =>
-            (categoryMap[a.uid] || []).includes(cat.id),
-          ).length;
-          return (
+      {/* ── Category filter tags - horizontal scroll on mobile ──── */}
+      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex items-center gap-2 min-w-max sm:min-w-0 sm:flex-wrap pb-1 sm:pb-0">
+          <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            분야:
+          </span>
+          {CATEGORIES.map((cat) => {
+            const isActive = activeCategories.has(cat.id);
+            const count = articles.filter((a) =>
+              (categoryMap[a.uid] || []).includes(cat.id),
+            ).length;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => toggleCategory(cat.id)}
+                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors whitespace-nowrap shrink-0 ${
+                  isActive ? cat.activeColor : cat.color
+                }`}
+              >
+                {cat.label}
+                {count > 0 && (
+                  <span className="ml-1 opacity-70">({count})</span>
+                )}
+                {isActive && <X className="h-3 w-3 ml-1 -mr-0.5" />}
+              </button>
+            );
+          })}
+          {activeCategories.size > 0 && (
             <button
-              key={cat.id}
-              onClick={() => toggleCategory(cat.id)}
-              className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                isActive ? cat.activeColor : cat.color
-              }`}
+              onClick={() => setActiveCategories(new Set())}
+              className="text-xs text-muted-foreground hover:text-foreground underline ml-1 shrink-0"
             >
-              {cat.label}
-              {count > 0 && (
-                <span className="ml-1.5 opacity-70">({count})</span>
-              )}
-              {isActive && <X className="h-3 w-3 ml-1.5 -mr-0.5" />}
+              해제
             </button>
-          );
-        })}
-        {activeCategories.size > 0 && (
-          <button
-            onClick={() => setActiveCategories(new Set())}
-            className="text-xs text-muted-foreground hover:text-foreground underline ml-1"
-          >
-            전체 해제
-          </button>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Result count */}

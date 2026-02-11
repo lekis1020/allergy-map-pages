@@ -136,7 +136,7 @@ function JoinCommunityForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background p-4 safe-top safe-bottom">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -214,7 +214,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-dvh overflow-hidden">
       <AppSidebar />
       <main className="flex-1 overflow-x-hidden overflow-y-auto">
-        <div className="w-full max-w-5xl mx-auto px-4 pt-16 pb-4 md:px-6 md:pt-6 md:pb-6 safe-bottom">
+        <div className="w-full max-w-5xl mx-auto px-4 pt-14 pb-4 md:px-6 md:pt-6 md:pb-6 safe-bottom standalone-safe-top">
           {children}
         </div>
       </main>
