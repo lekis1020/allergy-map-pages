@@ -5,5 +5,8 @@
 [build.environment]
   NODE_VERSION = "22"
 
+[functions]
+  external_node_modules = ["@supabase/supabase-js"]
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
