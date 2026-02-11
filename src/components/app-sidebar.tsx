@@ -227,11 +227,12 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
 
   return (
     <>
-      {/* Mobile toggle */}
+      {/* Mobile toggle - respects safe area for notched phones */}
       <Button
         variant="ghost"
         size="icon"
-        className="fixed left-2 top-2 z-50 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm shadow-sm border md:hidden"
+        className="fixed left-2 z-50 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm shadow-sm border md:hidden"
+        style={{ top: "max(0.5rem, env(safe-area-inset-top, 0.5rem))" }}
         onClick={() => setMobileOpen(!mobileOpen)}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -250,10 +251,10 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
         <SidebarContent />
       </aside>
 
-      {/* Mobile sidebar */}
+      {/* Mobile sidebar - safe area aware */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] bg-sidebar shadow-xl transition-transform duration-200 md:hidden",
+          "fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] bg-sidebar shadow-xl transition-transform duration-200 md:hidden safe-top safe-bottom",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

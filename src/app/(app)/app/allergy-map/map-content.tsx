@@ -224,9 +224,10 @@ export default function AllergyMapContent() {
       `}</style>
 
       <div className="fixed inset-0 md:left-64 z-10 flex flex-col md:flex-row bg-background">
-        {/* Mobile toggle */}
+        {/* Mobile toggle - positioned next to hamburger, respects safe area */}
         <button
-          className="absolute top-3 left-14 md:hidden z-[1000] rounded-lg bg-white px-3 py-2 text-xs font-medium shadow-lg border dark:bg-gray-800 dark:border-gray-600"
+          className="absolute left-14 md:hidden z-[1000] rounded-lg bg-white px-3 py-2 text-xs font-medium shadow-lg border dark:bg-gray-800 dark:border-gray-600"
+          style={{ top: "max(0.75rem, env(safe-area-inset-top, 0.75rem))" }}
           onClick={() => setPanelOpen(!panelOpen)}
         >
           {panelOpen ? "🗺️ 지도 보기" : "📋 목록 보기"}
@@ -238,8 +239,8 @@ export default function AllergyMapContent() {
             panelOpen ? "flex" : "hidden md:flex"
           } flex-col w-full h-full md:w-[400px] md:shrink-0 border-r border-border bg-card overflow-hidden`}
         >
-          {/* Header */}
-          <div className="bg-gradient-to-br from-blue-900 to-blue-600 text-white px-5 py-4">
+          {/* Header - extra top space on mobile for hamburger button */}
+          <div className="bg-gradient-to-br from-blue-900 to-blue-600 text-white px-5 pt-12 pb-4 md:py-4 standalone-safe-top">
             <h1 className="text-base font-bold flex items-center gap-2">
               🏥 대한천식알레르기학회 전문의 병원
             </h1>

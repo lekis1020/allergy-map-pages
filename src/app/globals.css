@@ -121,6 +121,46 @@
 /* Prevent overscroll bounce on iOS */
 html, body {
   overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* PWA standalone mode: hide Safari UI completely */
+@media (display-mode: standalone) {
+  html, body {
+    position: fixed;
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Push content below the status bar on notched phones */
+  .standalone-safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Prevent any pull-to-refresh or rubber-banding */
+  body {
+    overscroll-behavior-y: none;
+    -webkit-user-select: none;
+    user-select: auto;
+  }
+}
+
+/* Touch optimization for mobile */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Except small inline elements */
+  .text-xs button, .text-xs a,
+  span > button, span > a,
+  .inline-flex {
+    min-height: unset;
+    min-width: unset;
+  }
 }
 
 /* Mobile touch-friendly - prevent iOS zoom on input focus */
