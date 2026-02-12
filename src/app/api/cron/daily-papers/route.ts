@@ -67,14 +67,14 @@ interface AbstractSection {
 
 // ── Helpers ───────────────────────────────────────────────────────
 
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
+/** Current date in KST (Asia/Seoul, UTC+9) as YYYY/MM/DD for PubMed */
+function todayKSTStr() {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }).replace(/-/g, "/");
 }
 
-function todayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+/** Current date in KST as YYYY-MM-DD for Supabase */
+function todayKSTISO() {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
 }
 
 async function callGemini(systemPrompt: string, userContent: string) {
@@ -102,7 +102,7 @@ async function callGemini(systemPrompt: string, userContent: string) {
 
 // ── Step 1: Fetch PubMed articles ─────────────────────────────────
 async function fetchPubMedArticles() {
-  const today = todayStr();
+  const today = todayKSTStr();
   const query = SEARCH_TERMS.map((t) => `"${t}"`).join(" OR ");
   const searchUrl = `${PUBMED_BASE}/esearch.fcgi?db=pubmed&term=(${encodeURIComponent(query)})&datetype=pdat&mindate=${today}&maxdate=${today}&retmode=json&retmax=50&sort=date`;
 
@@ -312,6 +312,8 @@ export async function GET(_request: NextRequest) {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+  const dateISO = todayKSTISO();
+
   try {
     // 1) Fetch PubMed articles
     const { articles, totalCount } = await fetchPubMedArticles();
@@ -319,7 +321,7 @@ export async function GET(_request: NextRequest) {
     if (articles.length === 0) {
       const { error: upsertErr } = await supabase.from("daily_papers").upsert(
         {
-          date: todayISO(),
+          date: dateISO,
           articles: [],
           abstracts: {},
           category_map: {},
@@ -329,7 +331,7 @@ export async function GET(_request: NextRequest) {
       );
       if (upsertErr) throw new Error(`Supabase upsert error: ${JSON.stringify(upsertErr)}`);
 
-      return NextResponse.json({ success: true, date: todayISO(), count: 0 });
+      return NextResponse.json({ success: true, date: dateISO, count: 0 });
     }
 
     // 2) Categorise via Gemini
@@ -349,13 +351,30 @@ export async function GET(_request: NextRequest) {
       console.error("Abstract parsing failed, continuing:", err);
     }
 
-    // 4) Save to Supabase
+    // 4) Filter out articles without abstracts before saving
+    const hasRealAbstract = (pmid: string): boolean => {
+      const sections = abstractsMap[pmid];
+      if (!sections || sections.length === 0) return false;
+      if (sections.length === 1 && sections[0].text === "초록이 제공되지 않습니다.") return false;
+      return true;
+    };
+
+    const filteredArticles = articles.filter((a: { uid: string }) => hasRealAbstract(a.uid));
+    const filteredAbstracts: Record<string, AbstractSection[]> = {};
+    const filteredCategoryMap: Record<string, string[]> = {};
+    for (const a of filteredArticles) {
+      const uid = (a as { uid: string }).uid;
+      if (abstractsMap[uid]) filteredAbstracts[uid] = abstractsMap[uid];
+      if (categoryMap[uid]) filteredCategoryMap[uid] = categoryMap[uid];
+    }
+
+    // 5) Save to Supabase
     const { error: upsertErr } = await supabase.from("daily_papers").upsert(
       {
-        date: todayISO(),
-        articles,
-        abstracts: abstractsMap,
-        category_map: categoryMap,
+        date: dateISO,
+        articles: filteredArticles,
+        abstracts: filteredAbstracts,
+        category_map: filteredCategoryMap,
         total_count: totalCount,
       },
       { onConflict: "date" },
@@ -367,10 +386,11 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      date: todayISO(),
-      count: articles.length,
-      categorized: Object.keys(categoryMap).length,
-      abstracts_parsed: Object.keys(abstractsMap).length,
+      date: dateISO,
+      total_found: totalCount,
+      with_abstract: filteredArticles.length,
+      categorized: Object.keys(filteredCategoryMap).length,
+      abstracts_parsed: Object.keys(filteredAbstracts).length,
     });
   } catch (err) {
     console.error("[daily-papers] Error:", err);
