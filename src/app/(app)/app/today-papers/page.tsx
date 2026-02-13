@@ -152,26 +152,45 @@ export default function TodayPapersPage() {
   const [categoryMap, setCategoryMap] = useState<Record<string, string[]>>({});
   const [dataDate, setDataDate] = useState<string | null>(null);
 
-  // ── Load from Supabase ──────────────────────────────────────────
+  // ── Load from Supabase (어제 KST 기준, fallback: 최근 데이터) ──
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
       const supabase = createClient();
-      const today = new Date();
-      const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-      const { data, error: dbError } = await supabase
+      // KST 기준 어제 날짜 계산
+      const nowKST = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }),
+      );
+      const yesterdayKST = new Date(nowKST);
+      yesterdayKST.setDate(yesterdayKST.getDate() - 1);
+      const yesterdayISO = `${yesterdayKST.getFullYear()}-${String(yesterdayKST.getMonth() + 1).padStart(2, "0")}-${String(yesterdayKST.getDate()).padStart(2, "0")}`;
+
+      // 1) 어제 날짜 데이터 조회
+      let { data, error: dbError } = await supabase
         .from("daily_papers")
         .select("*")
-        .eq("date", todayISO)
+        .eq("date", yesterdayISO)
         .maybeSingle();
 
       if (dbError) throw dbError;
 
+      // 2) 어제 데이터 없으면 가장 최근 데이터로 fallback
       if (!data) {
-        // No data for today yet
+        const { data: latestData, error: latestErr } = await supabase
+          .from("daily_papers")
+          .select("*")
+          .order("date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (latestErr) throw latestErr;
+        data = latestData;
+      }
+
+      if (!data) {
         setArticles([]);
         setAbstracts({});
         setCategoryMap({});
@@ -268,7 +287,10 @@ export default function TodayPapersPage() {
     return true;
   });
 
-  const today = new Date();
+  // 표시용 날짜: DB에 저장된 수집일 기준
+  const displayDate = dataDate
+    ? format(new Date(dataDate + "T00:00:00"), "yyyy년 M월 d일 (EEE)", { locale: ko })
+    : format(new Date(), "yyyy년 M월 d일 (EEE)", { locale: ko });
 
   // ── Render ──────────────────────────────────────────────────────
   return (
@@ -281,8 +303,7 @@ export default function TodayPapersPage() {
             오늘의 논문
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            PubMed 알레르기 관련 최신 논문 ·{" "}
-            {format(today, "yyyy년 M월 d일 (EEE)", { locale: ko })}
+            PubMed 알레르기 관련 최신 논문 · {displayDate} 수집
           </p>
         </div>
         <Button
@@ -386,8 +407,8 @@ export default function TodayPapersPage() {
             <Newspaper className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               {dataDate
-                ? "오늘 발행된 알레르기 관련 논문이 없습니다."
-                : "아직 오늘의 논문 데이터가 준비되지 않았습니다. 자정에 자동 수집됩니다."}
+                ? "해당 날짜에 발행된 알레르기 관련 논문이 없습니다."
+                : "아직 논문 데이터가 준비되지 않았습니다. 매일 23:55(KST)에 자동 수집됩니다."}
             </p>
           </CardContent>
         </Card>
