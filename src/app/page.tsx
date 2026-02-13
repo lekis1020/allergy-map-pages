@@ -16,11 +16,6 @@ export default async function HomePage() {
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
           KAACI_JR
         </h1>
-        <p className="mt-6 text-lg leading-8 text-muted-foreground">
-          같은 업종, 같은 관심사를 가진 전문가들이 모이는
-          <br />
-          KAACI_JR 비공개 비즈니스 네트워킹입니다.
-        </p>
         <div className="mt-10 flex items-center justify-center gap-4">
           <Link
             href="/login"
