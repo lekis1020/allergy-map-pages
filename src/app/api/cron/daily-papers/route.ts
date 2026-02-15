@@ -136,7 +136,8 @@ async function categorizeArticles(
     "Asthma and rhinitis",
     "Urticaria and atopic dermatitis",
     "Drug allergy",
-    "Eosinophilic and immunologic disorders",
+    "Eosinophilic and Immunologic disorders / Immunology",
+    "Clinical Immunology",
     "Others",
   ];
 
@@ -148,12 +149,14 @@ Categories:
 1. "Asthma and rhinitis" — asthma, allergic rhinitis, rhinosinusitis, bronchial hyperresponsiveness, wheezing, nasal allergy
 2. "Urticaria and atopic dermatitis" — urticaria, atopic dermatitis, eczema, angioedema, chronic spontaneous urticaria, contact dermatitis
 3. "Drug allergy" — drug allergy, drug hypersensitivity, anaphylaxis, food allergy, adverse drug reactions, drug-induced reactions
-4. "Eosinophilic and immunologic disorders" — eosinophilic esophagitis/gastritis, allergen immunotherapy, immunoglobulin E, immune dysregulation, mast cell disorders, EGPA, HES
-5. "Others" — articles that do not clearly fit into categories 1-4
+4. "Eosinophilic and Immunologic disorders / Immunology" — basic immunology research, eosinophilic esophagitis/gastritis, allergen immunotherapy, immunoglobulin E, immune dysregulation, mast cell disorders, EGPA, HES, innate/adaptive immunity mechanisms, cytokines, T cells, B cells, immune signaling pathways, immunological tolerance, autoimmunity mechanisms (non-clinical/non-patient studies)
+5. "Clinical Immunology" — clinical studies involving patients, clinical trials on immunological diseases, patient outcomes in immunotherapy, clinical management of immune-mediated diseases, immunodeficiency diagnosis/treatment, clinical autoimmune disease management
+6. "Others" — articles that do not clearly fit into categories 1-5
 
 Rules:
 - An article can belong to multiple categories (except Others)
-- Only use "Others" if the article does not fit ANY of categories 1-4
+- Only use "Others" if the article does not fit ANY of categories 1-5
+- Key distinction for categories 4 vs 5: Category 4 is for basic/fundamental immunology research and eosinophilic disorders. Category 5 is for clinical immunology involving patients, clinical trials, or clinical management.
 - Return ONLY a JSON array: [{"uid":"...","categories":["..."]}]
 - Output valid JSON only, no markdown fences`;
 
