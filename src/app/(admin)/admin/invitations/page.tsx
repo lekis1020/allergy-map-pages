@@ -69,7 +69,12 @@ export default function AdminInvitationsPage() {
   }
 
   async function handleDelete(id: string) {
-    await supabase.from("invitations").delete().eq("id", id);
+    const { error } = await supabase.from("invitations").delete().eq("id", id);
+    if (error) {
+      console.error("Delete failed:", error);
+      alert("초대코드 삭제에 실패했습니다.");
+      return;
+    }
     await loadInvitations();
   }
 

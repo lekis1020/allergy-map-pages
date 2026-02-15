@@ -6,7 +6,6 @@ import { ko } from "date-fns/locale";
 import {
   Newspaper,
   ExternalLink,
-  RefreshCw,
   ChevronDown,
   ChevronUp,
   Search,
@@ -64,11 +63,18 @@ const CATEGORIES = [
     activeColor: "bg-orange-600 text-white border-orange-600",
   },
   {
-    id: "Eosinophilic and immunologic disorders",
-    label: "Eosinophilic and immunologic disorders",
+    id: "Eosinophilic and Immunologic disorders / Immunology",
+    label: "Eosinophilic and Immunologic disorders / Immunology",
     color:
       "bg-green-100 text-green-800 border-green-300 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
     activeColor: "bg-green-600 text-white border-green-600",
+  },
+  {
+    id: "Clinical Immunology",
+    label: "Clinical Immunology",
+    color:
+      "bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800",
+    activeColor: "bg-teal-600 text-white border-teal-600",
   },
   {
     id: "Others",
@@ -306,18 +312,6 @@ export default function TodayPapersPage() {
             PubMed 알레르기 관련 최신 논문 · {displayDate} 수집
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => loadData()}
-          disabled={loading}
-          className="shrink-0 self-start"
-        >
-          <RefreshCw
-            className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`}
-          />
-          새로고침
-        </Button>
       </div>
 
       {/* Search filter */}
