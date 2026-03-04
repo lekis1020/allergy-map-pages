@@ -84,8 +84,8 @@ const CATEGORIES = [
     activeColor: "bg-green-600 text-white border-green-600",
   },
   {
-    id: "Immunodeficiency",
-    label: "Immunodeficiency",
+    id: "Primary Immunodeficiency",
+    label: "Primary Immunodeficiency",
     color:
       "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
     activeColor: "bg-amber-600 text-white border-amber-600",
