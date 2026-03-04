@@ -160,8 +160,9 @@ Categories:
 9. "Others" — articles that do not clearly fit into categories 1-8
 
 Rules:
-- An article can belong to multiple categories (except Others)
-- Only use "Others" if the article does not fit ANY of categories 1-8
+- CRITICAL EXCLUSION: Articles primarily about cancer, oncology, tumors, malignancy, carcinoma, lymphoma, leukemia, or cancer immunotherapy (e.g., checkpoint inhibitors, CAR-T therapy, PD-1/PD-L1, tumor immunology) must be classified as "Excluded" — even if they mention allergy or immunology terms. However, if the PRIMARY focus is an allergic/immunologic condition and cancer is only mentioned incidentally (e.g., "drug allergy in cancer patients", "anaphylaxis to chemotherapy"), classify normally into the appropriate allergy/immunology category.
+- An article can belong to multiple categories (except Others and Excluded)
+- Only use "Others" if the article does not fit ANY of categories 1-8 but is still relevant to allergy/immunology
 - If an article involves anaphylaxis AND a specific trigger (e.g., drug or food), assign BOTH "Anaphylaxis" and the trigger category
 - Biologics studies should go to "Immunology and Immunotherapy" AND the relevant disease category (e.g., dupilumab for atopic dermatitis → both categories)
 - "Primary Immunodeficiency" is strictly for primary/inherited immune deficiency diseases (inborn errors of immunity) and their diagnosis/treatment. Secondary immunodeficiency due to drugs, HIV, or malignancy should NOT be classified here
@@ -174,6 +175,8 @@ Rules:
 
   const categoryMap: Record<string, string[]> = {};
   for (const r of results) {
+    // Skip articles classified as cancer/oncology-related
+    if (r.categories.includes("Excluded")) continue;
     const valid = r.categories.filter((c: string) => CATEGORIES.includes(c));
     categoryMap[r.uid] = valid.length > 0 ? valid : ["Others"];
   }
@@ -370,7 +373,9 @@ export async function GET(_request: NextRequest) {
       return true;
     };
 
-    const filteredArticles = articles.filter((a: { uid: string }) => hasRealAbstract(a.uid));
+    const filteredArticles = articles.filter((a: { uid: string }) =>
+      hasRealAbstract(a.uid) && categoryMap[a.uid] !== undefined
+    );
     const filteredAbstracts: Record<string, AbstractSection[]> = {};
     const filteredCategoryMap: Record<string, string[]> = {};
     for (const a of filteredArticles) {
