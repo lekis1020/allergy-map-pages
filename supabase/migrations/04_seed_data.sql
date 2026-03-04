@@ -17,7 +17,7 @@ BEGIN
 
   -- 커뮤니티 생성
   INSERT INTO communities (name, description, owner_id)
-  VALUES ('KAACI_Jr', '같은 업종/직군 전문가들의 비공개 네트워킹 커뮤니티', v_user_id)
+  VALUES ('KAAACI_Jr', '같은 업종/직군 전문가들의 비공개 네트워킹 커뮤니티', v_user_id)
   RETURNING id INTO v_community_id;
 
   -- 운영자(owner)로 멤버 등록

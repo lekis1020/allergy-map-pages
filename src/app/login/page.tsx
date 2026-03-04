@@ -61,10 +61,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">
-            KAACI_JR
+            KAAACI_JR
           </CardTitle>
           <CardDescription>
-            KAACI_JR에 로그인하세요
+            KAAACI_JR에 로그인하세요
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -11,11 +11,16 @@ import {
   Search,
   X,
   Sparkles,
+  MessageCircle,
+  Send,
+  Loader2,
 } from "lucide-react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
 
 interface PubMedArticle {
@@ -179,6 +184,13 @@ export default function TodayPapersPage() {
   const [categoryMap, setCategoryMap] = useState<Record<string, string[]>>({});
   const [dataDate, setDataDate] = useState<string | null>(null);
 
+  // ── Paper comment state ──
+  const [commentingPmid, setCommentingPmid] = useState<string | null>(null);
+  const [commentText, setCommentText] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [paperCommentCounts, setPaperCommentCounts] = useState<Record<string, number>>({});
+  const [paperPostMap, setPaperPostMap] = useState<Record<string, { postId: string; channelId: string }>>({});
+
   // ── Load from Supabase (어제 KST 기준, fallback: 최근 데이터) ──
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -243,9 +255,77 @@ export default function TodayPapersPage() {
     }
   }, []);
 
+  // ── Load comment counts for papers ──
+  const loadPaperComments = useCallback(async (pmids: string[]) => {
+    if (pmids.length === 0) return;
+    const supabase = createClient();
+    const { data: posts } = await supabase
+      .from("posts")
+      .select("id, pmid, channel_id, comments(count)")
+      .in("pmid", pmids);
+
+    if (posts) {
+      const counts: Record<string, number> = {};
+      const postMap: Record<string, { postId: string; channelId: string }> = {};
+      for (const post of posts) {
+        if (!post.pmid) continue;
+        const commentCount = (post.comments as unknown as { count: number }[])?.[0]?.count ?? 0;
+        counts[post.pmid] = commentCount;
+        postMap[post.pmid] = { postId: post.id, channelId: post.channel_id };
+      }
+      setPaperCommentCounts(counts);
+      setPaperPostMap(postMap);
+    }
+  }, []);
+
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Load comment counts when articles are loaded
+  useEffect(() => {
+    if (articles.length > 0) {
+      const pmids = articles.map((a) => a.uid);
+      loadPaperComments(pmids);
+    }
+  }, [articles, loadPaperComments]);
+
+  // ── Submit paper comment ──
+  const handlePaperComment = async (pmid: string, title: string) => {
+    if (!commentText.trim()) return;
+    setSubmittingComment(true);
+
+    try {
+      const res = await fetch("/api/paper-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pmid,
+          paperTitle: title,
+          comment: commentText,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCommentText("");
+        setCommentingPmid(null);
+        // Update local state
+        setPaperCommentCounts((prev) => ({
+          ...prev,
+          [pmid]: (prev[pmid] || 0) + 1,
+        }));
+        setPaperPostMap((prev) => ({
+          ...prev,
+          [pmid]: { postId: data.postId, channelId: data.channelId },
+        }));
+      }
+    } catch (err) {
+      console.error("Comment error:", err);
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
 
   const toggleExpand = (pmid: string) => {
     setExpandedIds((prev) => {
@@ -577,7 +657,62 @@ export default function TodayPapersPage() {
                       DOI
                     </a>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-7 px-2"
+                    onClick={() => {
+                      setCommentingPmid(
+                        commentingPmid === article.uid ? null : article.uid
+                      );
+                      setCommentText("");
+                    }}
+                  >
+                    <MessageCircle className="h-3.5 w-3.5 mr-1" />
+                    댓글
+                    {(paperCommentCounts[article.uid] ?? 0) > 0 && (
+                      <span className="ml-1">({paperCommentCounts[article.uid]})</span>
+                    )}
+                  </Button>
+                  {paperPostMap[article.uid] && (
+                    <Link
+                      href={`/app/channels/${paperPostMap[article.uid].channelId}/post/${paperPostMap[article.uid].postId}`}
+                      className="inline-flex items-center text-xs text-primary hover:underline"
+                    >
+                      전체 토론 보기 &rarr;
+                    </Link>
+                  )}
                 </div>
+
+                {/* ── Comment input ─────────────────────────── */}
+                {commentingPmid === article.uid && (
+                  <div className="mt-3 pt-3 border-t flex gap-2">
+                    <Textarea
+                      placeholder="이 논문에 대한 의견을 남겨주세요..."
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      rows={2}
+                      className="flex-1 text-sm resize-none"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                          handlePaperComment(article.uid, article.title);
+                        }
+                      }}
+                    />
+                    <Button
+                      size="icon"
+                      className="h-9 w-9 shrink-0 self-end"
+                      onClick={() => handlePaperComment(article.uid, article.title)}
+                      disabled={submittingComment || !commentText.trim()}
+                    >
+                      {submittingComment ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                )}
 
                 {/* ── Abstract (IMRAD formatted, pre-computed) ─────── */}
                 {isExpanded && (

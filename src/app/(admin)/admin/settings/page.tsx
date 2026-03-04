@@ -50,18 +50,18 @@ export default function AdminSettingsPage() {
         </Link>
         <h1 className="text-xl font-bold flex items-center gap-2 sm:text-2xl">
           <Settings className="h-5 w-5 sm:h-6 sm:w-6" />
-          KAACI_JR 설정
+          KAAACI_JR 설정
         </h1>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>기본 설정</CardTitle>
-          <CardDescription>KAACI_JR의 기본 정보를 수정합니다</CardDescription>
+          <CardDescription>KAAACI_JR의 기본 정보를 수정합니다</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="community-name">KAACI_JR 이름</Label>
+            <Label htmlFor="community-name">KAAACI_JR 이름</Label>
             <Input
               id="community-name"
               value={name}

@@ -80,8 +80,8 @@ export default function AdminDashboardPage() {
     {
       href: "/admin/settings",
       icon: Settings,
-      label: "KAACI_JR 설정",
-      description: "KAACI_JR 이름, 설명 등",
+      label: "KAAACI_JR 설정",
+      description: "KAAACI_JR 이름, 설명 등",
     },
   ];
 

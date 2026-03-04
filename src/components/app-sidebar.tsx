@@ -77,7 +77,7 @@ export function AppSidebar({ unreadNotifications = 0 }: AppSidebarProps) {
         {/* Community Header */}
         <div className="flex h-14 items-center justify-between border-b px-4">
           <h2 className="text-lg font-semibold truncate">
-            KAACI_Jr
+            KAAACI_Jr
           </h2>
           <ThemeToggle />
         </div>
