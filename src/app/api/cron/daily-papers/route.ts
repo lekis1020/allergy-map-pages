@@ -133,11 +133,13 @@ async function categorizeArticles(
   if (articles.length === 0) return {};
 
   const CATEGORIES = [
-    "Asthma and rhinitis",
-    "Urticaria and atopic dermatitis",
-    "Drug allergy",
-    "Eosinophilic and Immunologic disorders / Immunology",
-    "Clinical Immunology",
+    "Asthma and Rhinitis",
+    "Urticaria and Atopic Dermatitis",
+    "Food Allergy",
+    "Drug Allergy",
+    "Anaphylaxis",
+    "Eosinophilic Disorders",
+    "Immunology and Immunotherapy",
     "Others",
   ];
 
@@ -146,17 +148,20 @@ async function categorizeArticles(
 Given a list of article objects (each with "uid" and "title"), classify each into one or more categories.
 
 Categories:
-1. "Asthma and rhinitis" — asthma, allergic rhinitis, rhinosinusitis, bronchial hyperresponsiveness, wheezing, nasal allergy
-2. "Urticaria and atopic dermatitis" — urticaria, atopic dermatitis, eczema, angioedema, chronic spontaneous urticaria, contact dermatitis
-3. "Drug allergy" — drug allergy, drug hypersensitivity, anaphylaxis, food allergy, adverse drug reactions, drug-induced reactions
-4. "Eosinophilic and Immunologic disorders / Immunology" — basic immunology research, eosinophilic esophagitis/gastritis, allergen immunotherapy, immunoglobulin E, immune dysregulation, mast cell disorders, EGPA, HES, innate/adaptive immunity mechanisms, cytokines, T cells, B cells, immune signaling pathways, immunological tolerance, autoimmunity mechanisms (non-clinical/non-patient studies)
-5. "Clinical Immunology" — clinical studies involving patients, clinical trials on immunological diseases, patient outcomes in immunotherapy, clinical management of immune-mediated diseases, immunodeficiency diagnosis/treatment, clinical autoimmune disease management
-6. "Others" — articles that do not clearly fit into categories 1-5
+1. "Asthma and Rhinitis" — asthma, allergic rhinitis, rhinosinusitis, bronchial hyperresponsiveness, wheezing, nasal allergy, COPD-asthma overlap
+2. "Urticaria and Atopic Dermatitis" — urticaria, chronic spontaneous urticaria, atopic dermatitis, eczema, angioedema, contact dermatitis
+3. "Food Allergy" — food allergy, food hypersensitivity, oral food challenge, oral immunotherapy (OIT) for food, FPIES, alpha-gal syndrome
+4. "Drug Allergy" — drug allergy, drug hypersensitivity, adverse drug reactions, drug desensitization, drug-induced skin reactions, DRESS, SJS/TEN
+5. "Anaphylaxis" — anaphylaxis (regardless of cause: food, drug, insect, exercise, idiopathic), epinephrine auto-injector, biphasic reactions
+6. "Eosinophilic Disorders" — eosinophilic esophagitis, eosinophilic gastritis/enteritis, EGPA, hypereosinophilic syndrome (HES), mast cell disorders, mastocytosis
+7. "Immunology and Immunotherapy" — allergen immunotherapy (SCIT/SLIT), immunoglobulin E, immune dysregulation, innate/adaptive immunity, cytokines, T cells, B cells, immune signaling, immunological tolerance, autoimmunity, immunodeficiency, biologics (omalizumab, dupilumab, mepolizumab, etc.), clinical immunology
+8. "Others" — articles that do not clearly fit into categories 1-7
 
 Rules:
 - An article can belong to multiple categories (except Others)
-- Only use "Others" if the article does not fit ANY of categories 1-5
-- Key distinction for categories 4 vs 5: Category 4 is for basic/fundamental immunology research and eosinophilic disorders. Category 5 is for clinical immunology involving patients, clinical trials, or clinical management.
+- Only use "Others" if the article does not fit ANY of categories 1-7
+- If an article involves anaphylaxis AND a specific trigger (e.g., drug or food), assign BOTH "Anaphylaxis" and the trigger category
+- Biologics studies should go to "Immunology and Immunotherapy" AND the relevant disease category (e.g., dupilumab for atopic dermatitis → both categories)
 - Return ONLY a JSON array: [{"uid":"...","categories":["..."]}]
 - Output valid JSON only, no markdown fences`;
 
