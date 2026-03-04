@@ -171,6 +171,7 @@ export interface Database {
           content_type: "text" | "markdown" | "link";
           pinned: boolean;
           attachments: Json;
+          pmid: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -184,6 +185,7 @@ export interface Database {
           content_type?: "text" | "markdown" | "link";
           pinned?: boolean;
           attachments?: Json;
+          pmid?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -197,6 +199,7 @@ export interface Database {
           content_type?: "text" | "markdown" | "link";
           pinned?: boolean;
           attachments?: Json;
+          pmid?: string | null;
           created_at?: string;
           updated_at?: string;
         };

@@ -109,7 +109,7 @@ export default function AdminChannelsPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>새 채널</DialogTitle>
-              <DialogDescription>KAACI_JR에 새 채널을 추가합니다</DialogDescription>
+              <DialogDescription>KAAACI_JR에 새 채널을 추가합니다</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">

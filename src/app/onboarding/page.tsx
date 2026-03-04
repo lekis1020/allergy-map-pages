@@ -88,7 +88,7 @@ export default function OnboardingPage() {
           </div>
           <CardTitle className="text-2xl">프로필 작성</CardTitle>
           <CardDescription>
-            KAACI_JR 멤버들에게 보여줄 프로필을 작성하세요
+            KAAACI_JR 멤버들에게 보여줄 프로필을 작성하세요
           </CardDescription>
         </CardHeader>
         <CardContent>

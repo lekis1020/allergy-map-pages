@@ -14,7 +14,7 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mx-auto max-w-2xl text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-          KAACI_JR
+          KAAACI_JR
         </h1>
         <div className="mt-10 flex items-center justify-center gap-4">
           <Link
