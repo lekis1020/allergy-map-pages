@@ -139,6 +139,7 @@ async function categorizeArticles(
     "Drug Allergy",
     "Anaphylaxis",
     "Eosinophilic Disorders",
+    "Immunodeficiency",
     "Immunology and Immunotherapy",
     "Others",
   ];
@@ -154,14 +155,16 @@ Categories:
 4. "Drug Allergy" — drug allergy, drug hypersensitivity, adverse drug reactions, drug desensitization, drug-induced skin reactions, DRESS, SJS/TEN
 5. "Anaphylaxis" — anaphylaxis (regardless of cause: food, drug, insect, exercise, idiopathic), epinephrine auto-injector, biphasic reactions
 6. "Eosinophilic Disorders" — eosinophilic esophagitis, eosinophilic gastritis/enteritis, EGPA, hypereosinophilic syndrome (HES), mast cell disorders, mastocytosis
-7. "Immunology and Immunotherapy" — allergen immunotherapy (SCIT/SLIT), immunoglobulin E, immune dysregulation, innate/adaptive immunity, cytokines, T cells, B cells, immune signaling, immunological tolerance, autoimmunity, immunodeficiency, biologics (omalizumab, dupilumab, mepolizumab, etc.), clinical immunology
-8. "Others" — articles that do not clearly fit into categories 1-7
+7. "Immunodeficiency" — primary immunodeficiency (PID), inborn errors of immunity (IEI), common variable immunodeficiency (CVID), severe combined immunodeficiency (SCID), agammaglobulinemia, complement deficiency, phagocytic disorders, immunoglobulin replacement therapy, IVIG/SCIG
+8. "Immunology and Immunotherapy" — allergen immunotherapy (SCIT/SLIT), immunoglobulin E, immune dysregulation, innate/adaptive immunity, cytokines, T cells, B cells, immune signaling, immunological tolerance, autoimmunity, biologics (omalizumab, dupilumab, mepolizumab, etc.), clinical immunology
+9. "Others" — articles that do not clearly fit into categories 1-8
 
 Rules:
 - An article can belong to multiple categories (except Others)
-- Only use "Others" if the article does not fit ANY of categories 1-7
+- Only use "Others" if the article does not fit ANY of categories 1-8
 - If an article involves anaphylaxis AND a specific trigger (e.g., drug or food), assign BOTH "Anaphylaxis" and the trigger category
 - Biologics studies should go to "Immunology and Immunotherapy" AND the relevant disease category (e.g., dupilumab for atopic dermatitis → both categories)
+- Immunodeficiency is for primary/inherited immune deficiency diseases and their diagnosis/treatment. Secondary immunodeficiency due to drugs or HIV should go to "Others" or the relevant category
 - Return ONLY a JSON array: [{"uid":"...","categories":["..."]}]
 - Output valid JSON only, no markdown fences`;
 
