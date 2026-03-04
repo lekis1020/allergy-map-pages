@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import {
@@ -42,36 +42,57 @@ interface AbstractSection {
 // ── Category definitions ──────────────────────────────────────────
 const CATEGORIES = [
   {
-    id: "Asthma and rhinitis",
-    label: "Asthma and rhinitis",
+    id: "Asthma and Rhinitis",
+    label: "Asthma and Rhinitis",
     color:
       "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
     activeColor: "bg-blue-600 text-white border-blue-600",
   },
   {
-    id: "Urticaria and atopic dermatitis",
-    label: "Urticaria and atopic dermatitis",
+    id: "Urticaria and Atopic Dermatitis",
+    label: "Urticaria and Atopic Dermatitis",
     color:
       "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800",
     activeColor: "bg-purple-600 text-white border-purple-600",
   },
   {
-    id: "Drug allergy",
-    label: "Drug allergy",
+    id: "Food Allergy",
+    label: "Food Allergy",
+    color:
+      "bg-red-100 text-red-800 border-red-300 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800",
+    activeColor: "bg-red-600 text-white border-red-600",
+  },
+  {
+    id: "Drug Allergy",
+    label: "Drug Allergy",
     color:
       "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800",
     activeColor: "bg-orange-600 text-white border-orange-600",
   },
   {
-    id: "Eosinophilic and Immunologic disorders / Immunology",
-    label: "Eosinophilic and Immunologic disorders / Immunology",
+    id: "Anaphylaxis",
+    label: "Anaphylaxis",
+    color:
+      "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
+    activeColor: "bg-rose-600 text-white border-rose-600",
+  },
+  {
+    id: "Eosinophilic Disorders",
+    label: "Eosinophilic Disorders",
     color:
       "bg-green-100 text-green-800 border-green-300 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
     activeColor: "bg-green-600 text-white border-green-600",
   },
   {
-    id: "Clinical Immunology",
-    label: "Clinical Immunology",
+    id: "Primary Immunodeficiency",
+    label: "Primary Immunodeficiency",
+    color:
+      "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+    activeColor: "bg-amber-600 text-white border-amber-600",
+  },
+  {
+    id: "Immunology and Immunotherapy",
+    label: "Immunology and Immunotherapy",
     color:
       "bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800",
     activeColor: "bg-teal-600 text-white border-teal-600",
@@ -268,30 +289,47 @@ export default function TodayPapersPage() {
     return true;
   };
 
+  // ── Precompute category counts ──────────────────────────────────
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const cat of CATEGORIES) {
+      counts[cat.id] = 0;
+    }
+    for (const a of articles) {
+      const cats = categoryMap[a.uid] || [];
+      for (const c of cats) {
+        if (counts[c] !== undefined) counts[c]++;
+      }
+    }
+    return counts;
+  }, [articles, categoryMap]);
+
   // ── Filtering (abstract required + text + category) ────────────
-  const filteredArticles = articles.filter((a) => {
-    // Exclude papers without abstracts
-    if (!hasAbstract(a.uid)) return false;
+  const filteredArticles = useMemo(() => {
+    return articles.filter((a) => {
+      // Exclude papers without abstracts
+      if (!hasAbstract(a.uid)) return false;
 
-    if (searchFilter) {
-      const s = searchFilter.toLowerCase();
-      const authorStr = a.authors?.map((au) => au.name).join(" ") || "";
-      const textMatch =
-        a.title.toLowerCase().includes(s) ||
-        authorStr.toLowerCase().includes(s) ||
-        a.fulljournalname?.toLowerCase().includes(s) ||
-        a.source?.toLowerCase().includes(s);
-      if (!textMatch) return false;
-    }
+      if (searchFilter) {
+        const s = searchFilter.toLowerCase();
+        const authorStr = a.authors?.map((au) => au.name).join(" ") || "";
+        const textMatch =
+          a.title.toLowerCase().includes(s) ||
+          authorStr.toLowerCase().includes(s) ||
+          a.fulljournalname?.toLowerCase().includes(s) ||
+          a.source?.toLowerCase().includes(s);
+        if (!textMatch) return false;
+      }
 
-    if (activeCategories.size > 0) {
-      const articleCats = getArticleCategories(a);
-      if (articleCats.length === 0) return false;
-      if (!articleCats.some((c) => activeCategories.has(c))) return false;
-    }
+      if (activeCategories.size > 0) {
+        const articleCats = getArticleCategories(a);
+        if (articleCats.length === 0) return false;
+        if (!articleCats.some((c) => activeCategories.has(c))) return false;
+      }
 
-    return true;
-  });
+      return true;
+    });
+  }, [articles, searchFilter, activeCategories, abstracts, categoryMap]);
 
   // 표시용 날짜: DB에 저장된 수집일 기준
   const displayDate = dataDate
@@ -334,9 +372,7 @@ export default function TodayPapersPage() {
           </span>
           {CATEGORIES.map((cat) => {
             const isActive = activeCategories.has(cat.id);
-            const count = articles.filter((a) =>
-              (categoryMap[a.uid] || []).includes(cat.id),
-            ).length;
+            const count = categoryCounts[cat.id] || 0;
             return (
               <button
                 key={cat.id}
