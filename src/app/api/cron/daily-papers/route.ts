@@ -141,6 +141,7 @@ async function categorizeArticles(
     "Eosinophilic Disorders",
     "Primary Immunodeficiency",
     "Immunology and Immunotherapy",
+    "AI and Digital Health",
     "Others",
   ];
 
@@ -157,12 +158,13 @@ Categories:
 6. "Eosinophilic Disorders" — eosinophilic esophagitis, eosinophilic gastritis/enteritis, EGPA, hypereosinophilic syndrome (HES), mast cell disorders, mastocytosis
 7. "Primary Immunodeficiency" — primary immunodeficiency (PID), inborn errors of immunity (IEI), common variable immunodeficiency (CVID), severe combined immunodeficiency (SCID), X-linked agammaglobulinemia (XLA), selective IgA deficiency, complement deficiency, phagocytic disorders (CGD, LAD), ALPS, IPEX, DiGeorge syndrome, Wiskott-Aldrich syndrome, ataxia-telangiectasia, immunoglobulin replacement therapy (IVIG/SCIG), newborn screening for SCID
 8. "Immunology and Immunotherapy" — allergen immunotherapy (SCIT/SLIT), immunoglobulin E, immune dysregulation, innate/adaptive immunity, cytokines, T cells, B cells, immune signaling, immunological tolerance, autoimmunity, biologics (omalizumab, dupilumab, mepolizumab, etc.), clinical immunology
-9. "Others" — articles that do not clearly fit into categories 1-8
+9. "AI and Digital Health" — artificial intelligence (AI), machine learning (ML), deep learning, large language models (LLM), natural language processing (NLP), computer vision, clinical decision support systems, digital health, mobile health (mHealth), wearable devices, telemedicine, electronic health records (EHR), predictive modeling, chatbots in healthcare, AI-assisted diagnosis — applied to allergy, immunology, or related conditions. Articles must involve BOTH an AI/digital technology AND an allergy/immunology topic
+10. "Others" — articles that do not clearly fit into categories 1-9
 
 Rules:
 - CRITICAL EXCLUSION: Articles primarily about cancer, oncology, tumors, malignancy, carcinoma, lymphoma, leukemia, or cancer immunotherapy (e.g., checkpoint inhibitors, CAR-T therapy, PD-1/PD-L1, tumor immunology) must be classified as "Excluded" — even if they mention allergy or immunology terms. However, if the PRIMARY focus is an allergic/immunologic condition and cancer is only mentioned incidentally (e.g., "drug allergy in cancer patients", "anaphylaxis to chemotherapy"), classify normally into the appropriate allergy/immunology category.
 - An article can belong to multiple categories (except Others and Excluded)
-- Only use "Others" if the article does not fit ANY of categories 1-8 but is still relevant to allergy/immunology
+- Only use "Others" if the article does not fit ANY of categories 1-9 but is still relevant to allergy/immunology
 - If an article involves anaphylaxis AND a specific trigger (e.g., drug or food), assign BOTH "Anaphylaxis" and the trigger category
 - Biologics studies should go to "Immunology and Immunotherapy" AND the relevant disease category (e.g., dupilumab for atopic dermatitis → both categories)
 - "Primary Immunodeficiency" is strictly for primary/inherited immune deficiency diseases (inborn errors of immunity) and their diagnosis/treatment. Secondary immunodeficiency due to drugs, HIV, or malignancy should NOT be classified here
