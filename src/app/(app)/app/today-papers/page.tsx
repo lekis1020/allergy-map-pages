@@ -103,6 +103,13 @@ const CATEGORIES = [
     activeColor: "bg-teal-600 text-white border-teal-600",
   },
   {
+    id: "AI and Digital Health",
+    label: "AI and Digital Health",
+    color:
+      "bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800",
+    activeColor: "bg-indigo-600 text-white border-indigo-600",
+  },
+  {
     id: "Others",
     label: "Others",
     color:
