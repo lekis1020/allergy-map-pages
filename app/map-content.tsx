@@ -315,23 +315,15 @@ export default function AllergyMapContent() {
       `}</style>
 
       <div className="fixed inset-0 z-10 flex flex-col md:flex-row bg-background">
-        {/* Mobile toggle */}
-        <button
-          className="absolute left-1/2 -translate-x-1/2 md:hidden z-[1000] rounded-full bg-white px-4 py-2 text-xs font-semibold shadow-lg border dark:bg-gray-800 dark:border-gray-600"
-          style={{ top: "max(0.75rem, env(safe-area-inset-top, 0.75rem))" }}
-          onClick={() => setPanelOpen(!panelOpen)}
-        >
-          {panelOpen ? "🗺️ 지도 보기" : "📋 목록 보기"}
-        </button>
-
-        {/* Side Panel */}
+        {/* Side Panel — slide-in drawer on mobile, static sidebar on desktop */}
         <div
-          className={`${
-            panelOpen ? "flex" : "hidden md:flex"
-          } flex-col w-full h-full md:w-[400px] md:shrink-0 border-r border-border bg-card overflow-hidden`}
+          className={`fixed md:static inset-y-0 left-0 z-[1100] flex flex-col w-[85vw] max-w-[360px] md:w-[400px] md:max-w-none md:shrink-0 border-r border-border bg-card overflow-hidden shadow-2xl md:shadow-none transition-transform duration-300 ease-in-out ${
+            panelOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          }`}
+          aria-hidden={!panelOpen}
         >
-          {/* Header - extra top space on mobile for hamburger button */}
-          <div className="bg-gradient-to-br from-blue-900 to-blue-600 text-white px-5 pt-12 pb-4 md:py-4 standalone-safe-top">
+          {/* Header */}
+          <div className="bg-gradient-to-br from-blue-900 to-blue-600 text-white px-5 py-4 standalone-safe-top">
             <h1 className="text-base font-bold flex items-center gap-2">
               🏥 대한천식알레르기학회 전문의 병원
             </h1>
@@ -608,12 +600,38 @@ export default function AllergyMapContent() {
           </div>
         </div>
 
-        {/* Map */}
-        <div
-          className={`flex-1 relative ${
-            panelOpen ? "hidden md:block" : "block"
-          }`}
+        {/* Drawer edge handle — mobile only, slides with the drawer */}
+        <button
+          onClick={() => setPanelOpen(!panelOpen)}
+          aria-label={panelOpen ? "메뉴 닫기" : "메뉴 열기"}
+          aria-expanded={panelOpen}
+          className="md:hidden fixed left-0 z-[1100] flex items-center justify-center w-7 h-16 bg-white dark:bg-gray-800 border border-l-0 border-border rounded-r-lg shadow-lg transition-transform duration-300 ease-in-out"
+          style={{
+            top: "50%",
+            transform: panelOpen
+              ? "translate(min(85vw, 360px), -50%)"
+              : "translate(0, -50%)",
+          }}
         >
+          <svg
+            className={`h-5 w-5 text-gray-600 dark:text-gray-300 transition-transform duration-300 ${
+              panelOpen ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+
+        {/* Map — always full-screen on mobile, behind the drawer */}
+        <div className="flex-1 relative">
           <div ref={mapRef} className="w-full h-full" />
 
           {/* Locate me button */}
