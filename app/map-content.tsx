@@ -61,6 +61,7 @@ export default function AllergyMapContent() {
   const [firazyrOnly, setFirazyrOnly] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [nearbyMode, setNearbyMode] = useState(false);
@@ -100,6 +101,13 @@ export default function AllergyMapContent() {
     }
     return results;
   }, [searchText, activeRegions, activeDepts, jextOnly, firazyrOnly, nearbyMode, userLocation]);
+
+  const activeFilterCount =
+    activeRegions.size +
+    activeDepts.size +
+    (jextOnly ? 1 : 0) +
+    (firazyrOnly ? 1 : 0) +
+    (nearbyMode ? 1 : 0);
 
   const stats = useMemo(() => {
     const totalDocs = filtered.reduce(
@@ -353,8 +361,8 @@ export default function AllergyMapContent() {
             개
           </div>
 
-          {/* Search & Filters */}
-          <div className="px-4 py-3 border-b border-border space-y-2.5">
+          {/* Search (always visible) */}
+          <div className="px-4 pt-3 pb-2 border-b border-border">
             <div className="relative">
               <svg
                 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
@@ -377,7 +385,50 @@ export default function AllergyMapContent() {
                 onChange={(e) => setSearchText(e.target.value)}
               />
             </div>
+          </div>
 
+          {/* Filter section toggle */}
+          <button
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            aria-expanded={filtersOpen}
+            className="w-full flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+          >
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              필터 · 옵션
+              {activeFilterCount > 0 && (
+                <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded-full text-[10px] font-bold leading-none">
+                  {activeFilterCount}
+                </span>
+              )}
+            </span>
+            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              {filtersOpen ? "접기" : "펼치기"}
+              <svg
+                className={`h-4 w-4 transition-transform duration-300 ${
+                  filtersOpen ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </span>
+          </button>
+
+          {/* Collapsible filters */}
+          <div
+            className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+              filtersOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="px-4 py-3 border-b border-border space-y-2.5">
             {/* Region Filter */}
             <div>
               <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
@@ -493,6 +544,8 @@ export default function AllergyMapContent() {
                     {option.label}
                   </button>
                 ))}
+              </div>
+            </div>
               </div>
             </div>
           </div>
